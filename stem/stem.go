@@ -14,7 +14,7 @@ func trimWord(word string) string {
 func StemInput(input string) string {
 	var result []string
 	stemmedWords := make(map[string]bool)
-	re := regexp.MustCompile(`-|'`)
+	re := regexp.MustCompile(`[-'.,!?:;]`)
 	for _, s := range strings.Fields(re.ReplaceAllString(input, " ")) {
 		s := english.Stem(trimWord(s), false)
 		if len(s) <= 2 || english.IsStopWord(s) || stemmedWords[s] {
