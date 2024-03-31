@@ -1,13 +1,13 @@
-PROJECT_DIR=./stem
-BIN_NAME=myapp
+srcdir=./stem
+TARGET=myapp
 
-build:
-	go build -o $(BIN_NAME) $(PROJECT_DIR)
+build: install
+	go build -o $(TARGET) $(srcdir)
+
+install:
+	go mod tidy
 
 clean:
-	rm $(BIN_NAME)
+	rm $(TARGET)
 
-default:
-	build
-
-.PHONY: build clean
+.PHONY: build clean install
