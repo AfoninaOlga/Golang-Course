@@ -18,6 +18,7 @@ func main() {
 	}
 
 	url := c.Url
+	db := c.DB
 
 	if url != "https://xkcd.com" {
 		fmt.Printf("Unsuppotrted url %v\n", c.Url)
@@ -46,9 +47,20 @@ func main() {
 		cnt = maxCnt
 	}
 
-	cm := database.ComicMap{}
+	maxId := database.GetMaxIdFromDB(db)
+	//return if all wanted comics are in DB and no output is needed
+	if int(cnt) < maxId && !output {
+		return
+	}
 
-	for i := 1; i <= int(cnt); i++ {
+	// reading existing comics
+	cm, err := database.ReadFile(db)
+	if err != nil {
+		fmt.Printf("Error reading DB: %v\n", err)
+	}
+
+	// adding comics if cnt is bigger than maxId in DB
+	for i := maxId + 1; i <= int(cnt); i++ {
 		comic, err := xkcdClient.GetComicResponse(i)
 		if err != nil {
 			fmt.Println(err)
@@ -64,7 +76,7 @@ func main() {
 		database.DisplayComicMap(cm, int(cnt))
 	}
 
-	err = database.WriteFile(c.DB, cm)
+	err = database.WriteFile(db, cm, int(cnt))
 	if err != nil {
 		fmt.Println(err)
 	}

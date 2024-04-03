@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 type Comic struct {
@@ -22,7 +23,11 @@ func DisplayComicMap(cm ComicMap, cnt int) {
 	}
 }
 
-func WriteFile(path string, comicMap ComicMap) error {
+func WriteFile(path string, comicMap ComicMap, maxId int) error {
+	if maxId > GetMaxIdFromDB(path) {
+		//write maxId to file
+		os.WriteFile(path+".max", []byte(strconv.Itoa(maxId)), 0644)
+	}
 	file, err := json.MarshalIndent(comicMap, "", " ")
 	if err != nil {
 		return err
@@ -32,10 +37,38 @@ func WriteFile(path string, comicMap ComicMap) error {
 }
 
 func ReadFile(path string) (cm ComicMap, err error) {
+	if !fileExists(path) {
+		return ComicMap{}, nil
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return
 	}
 	err = json.Unmarshal(data, &cm)
 	return
+}
+
+func GetMaxIdFromDB(path string) int {
+	path += ".max"
+	if fileExists(path) {
+		f, err := os.ReadFile(path)
+		if err != nil {
+			return 0
+		}
+		res, err := strconv.Atoi(string(f))
+		if err != nil {
+			return 0
+		}
+		return res
+	} else {
+		return 0
+	}
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
