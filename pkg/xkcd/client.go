@@ -44,6 +44,11 @@ func (c Client) GetComicResponse(id int) (comic UrlComic, err error) {
 	}
 	defer resp.Body.Close()
 
+	//return empty comic if response code is not 200
+	if resp.StatusCode != 200 {
+		return
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return
