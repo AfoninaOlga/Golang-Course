@@ -13,9 +13,10 @@ type Comic struct {
 
 type ComicMap map[int]Comic
 
-func DisplayComicMap(cm ComicMap) {
-	for key, value := range cm {
-		fmt.Println(key, ":")
+func DisplayComicMap(cm ComicMap, cnt int) {
+	for i := 1; i <= cnt; i++ {
+		value := cm[i]
+		fmt.Println(i, ":")
 		fmt.Println("\turl:", value.Url)
 		fmt.Println("\tkeywords:", value.Keywords)
 	}
