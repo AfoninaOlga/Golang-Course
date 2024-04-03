@@ -1,13 +1,13 @@
 srcdir=./cmd/xkcd
 TARGET=xkcd
 
-build: install
+build: deps
 	go build -o $(TARGET) $(srcdir)
 
-install:
+deps:
 	go mod tidy
 
 clean:
 	rm $(TARGET)
 
-.PHONY: build clean install
+.PHONY: build clean deps
