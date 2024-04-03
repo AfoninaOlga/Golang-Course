@@ -6,7 +6,6 @@ import (
 	"github.com/AfoninaOlga/xkcd/pkg/utils"
 	"github.com/AfoninaOlga/xkcd/pkg/words"
 	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
-	"strconv"
 )
 
 func main() {
@@ -50,7 +49,6 @@ func main() {
 	cm := database.ComicMap{}
 
 	for i := 1; i <= int(cnt); i++ {
-		id := strconv.Itoa(i)
 		comic, err := xkcdClient.GetComicResponse(i)
 		if err != nil {
 			fmt.Println(err)
@@ -59,7 +57,7 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		cm[id] = database.Comic{Url: comic.Url, Keywords: keywords}
+		cm[i] = database.Comic{Url: comic.Url, Keywords: keywords}
 	}
 
 	if output {

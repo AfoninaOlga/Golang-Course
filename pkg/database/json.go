@@ -11,7 +11,7 @@ type Comic struct {
 	Keywords []string `json:"keywords"`
 }
 
-type ComicMap map[string]Comic
+type ComicMap map[int]Comic
 
 func DisplayComicMap(cm ComicMap) {
 	for key, value := range cm {
