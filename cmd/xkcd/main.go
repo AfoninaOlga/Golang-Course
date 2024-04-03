@@ -32,6 +32,7 @@ func main() {
 		fmt.Printf("Error getting comics count: %v\n", err)
 	}
 
+	//setting comics count limit
 	if cnt > maxCnt {
 		fmt.Printf(
 			"Entered number %v is bigger than existing comics count, -n is set to %v\n",
@@ -41,6 +42,7 @@ func main() {
 		cnt = maxCnt
 	}
 
+	//setting comics count if it's not set
 	if !cntIsSet {
 		cnt = maxCnt
 	}
