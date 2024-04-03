@@ -26,7 +26,10 @@ func DisplayComicMap(cm ComicMap, cnt int) {
 func WriteFile(path string, comicMap ComicMap, maxId int) error {
 	if maxId > GetMaxIdFromDB(path) {
 		//write maxId to file
-		os.WriteFile(path+".max", []byte(strconv.Itoa(maxId)), 0644)
+		err := os.WriteFile(path+".max", []byte(strconv.Itoa(maxId)), 0644)
+		if err != nil {
+			return err
+		}
 	}
 	file, err := json.MarshalIndent(comicMap, "", " ")
 	if err != nil {
