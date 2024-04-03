@@ -22,6 +22,7 @@ func checkWord(word string) (ok bool, err error) {
 
 func StemInput(input string) ([]string, error) {
 	var result []string
+	//comic transcript may contain `\n` attached to a word
 	input = strings.ReplaceAll(input, `\n`, " ")
 	stemmedWords := make(map[string]bool)
 	f := func(c rune) bool {
@@ -33,6 +34,7 @@ func StemInput(input string) ([]string, error) {
 			return result, err
 		}
 		s = english.Stem(s, false)
+		// added "alt" to stop-list cause transcript may contain "Alt:<alternative description>"
 		if len(s) <= 2 || english.IsStopWord(s) || s == "alt" || stemmedWords[s] {
 			continue
 		}
