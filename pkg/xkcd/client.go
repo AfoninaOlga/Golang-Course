@@ -2,9 +2,9 @@ package xkcd
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 type UrlComic struct {
@@ -14,15 +14,31 @@ type UrlComic struct {
 	Alt        string `json:"alt"`
 }
 
-func GetComicResponse(url string) (comic UrlComic, err error) {
-	c := http.Client{Timeout: time.Duration(1) * time.Second}
+type Client struct {
+	Url    string
+	Client http.Client
+}
+
+func NewClient(url string) Client {
+	c := http.Client{}
+	return Client{url, c}
+}
+
+func (c Client) GetComicResponse(id int) (comic UrlComic, err error) {
+	url := fmt.Sprintf("%v/%v/info.0.json", c.Url, id)
+
+	//hack to get comic with max id
+	if id == -1 {
+		url = c.Url + "/info.0.json"
+	}
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return
 	}
 
 	req.Header.Add("Accept", `application/json`)
-	resp, err := c.Do(req)
+	resp, err := c.Client.Do(req)
 	if err != nil {
 		return
 	}
@@ -37,8 +53,8 @@ func GetComicResponse(url string) (comic UrlComic, err error) {
 	return
 }
 
-func GetComicsCount(url string) (cnt uint, err error) {
-	comic, err := GetComicResponse(url)
+func (c Client) GetComicsCount() (cnt uint, err error) {
+	comic, err := c.GetComicResponse(-1)
 	if err != nil {
 		return
 	}

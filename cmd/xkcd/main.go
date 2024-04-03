@@ -12,7 +12,7 @@ import (
 func main() {
 	cntIsSet, cnt, output := utils.ParseInput()
 
-	c, err := utils.GetCongig("config.yaml")
+	c, err := utils.GetConfig("config.yaml")
 	if err != nil {
 		fmt.Printf("Could not read config file. Error: %v\n", err)
 		return
@@ -22,9 +22,12 @@ func main() {
 
 	if url != "https://xkcd.com" {
 		fmt.Printf("Unsuppotrted url %v\n", c.Url)
+		return
 	}
 
-	maxCnt, err := xkcd.GetComicsCount(c.Url + "/info.0.json")
+	xkcdClient := xkcd.NewClient(url)
+
+	maxCnt, err := xkcdClient.GetComicsCount()
 	if err != nil {
 		fmt.Printf("Error getting comics count: %v\n", err)
 	}
@@ -46,7 +49,7 @@ func main() {
 
 	for i := 1; i <= int(cnt); i++ {
 		id := strconv.Itoa(i)
-		comic, err := xkcd.GetComicResponse(url + "/" + id + "/info.0.json")
+		comic, err := xkcdClient.GetComicResponse(i)
 		if err != nil {
 			fmt.Println(err)
 		}
