@@ -10,7 +10,7 @@ type Config struct {
 	DB  string `yaml:"db_file"`
 }
 
-func GetCongig(path string) (c Config, err error) {
+func GetConfig(path string) (c Config, err error) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		return
