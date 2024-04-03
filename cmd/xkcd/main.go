@@ -61,7 +61,7 @@ func main() {
 	}
 
 	if output {
-		database.DisplayComicMap(cm)
+		database.DisplayComicMap(cm, int(cnt))
 	}
 
 	err = database.WriteFile(c.DB, cm)
