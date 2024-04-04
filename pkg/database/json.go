@@ -2,7 +2,6 @@ package database
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"strconv"
 )
@@ -12,49 +11,67 @@ type Comic struct {
 	Keywords []string `json:"keywords"`
 }
 
-type ComicMap map[int]Comic
-
-func DisplayComicMap(cm ComicMap, cnt int) {
-	for i := 1; i <= cnt; i++ {
-		value := cm[i]
-		fmt.Println(i, ":")
-		fmt.Println("\turl:", value.Url)
-		fmt.Println("\tkeywords:", value.Keywords)
-	}
+type JsonDatabase struct {
+	comics map[int]Comic
+	path   string
+	maxId  int
 }
 
-func WriteFile(path string, comicMap ComicMap, maxId int) error {
-	if maxId > GetMaxIdFromDB(path) {
-		//write maxId to file
-		err := os.WriteFile(path+".max", []byte(strconv.Itoa(maxId)), 0644)
+func (jb *JsonDatabase) Init(path string) (err error) {
+	jb.path = path
+	jb.maxId = getMaxId(path)
+	if fileExists(jb.path) {
+		var cm map[int]Comic
+		var data []byte
+		data, err = os.ReadFile(jb.path)
 		if err != nil {
-			return err
+			return
 		}
+		err = json.Unmarshal(data, &cm)
+		jb.comics = cm
+	} else {
+		jb.comics = map[int]Comic{}
 	}
-	file, err := json.MarshalIndent(comicMap, "", " ")
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile(path, file, 0644)
-	return err
-}
-
-func ReadFile(path string) (cm ComicMap, err error) {
-	if !fileExists(path) {
-		return ComicMap{}, nil
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return
-	}
-	err = json.Unmarshal(data, &cm)
 	return
 }
 
-func GetMaxIdFromDB(path string) int {
-	path += ".max"
-	if fileExists(path) {
-		f, err := os.ReadFile(path)
+func (jb *JsonDatabase) Flush() (err error) {
+	if jb.maxId > getMaxId(jb.path) {
+		//write maxId to file
+		err = os.WriteFile(jb.path+".max", []byte(strconv.Itoa(jb.maxId)), 0644)
+		if err != nil {
+			return err
+		}
+		var file []byte
+		file, err = json.MarshalIndent(jb.comics, "", " ")
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(jb.path, file, 0644)
+		return
+	}
+	return
+}
+
+func (jb *JsonDatabase) GetAll() map[int]Comic {
+	return jb.comics
+}
+
+func (jb *JsonDatabase) AddComic(id int, c Comic) {
+	jb.comics[id] = c
+	if id > jb.maxId {
+		jb.maxId = id
+	}
+}
+
+func (jb *JsonDatabase) GetMaxId() int {
+	return jb.maxId
+}
+
+func getMaxId(dbPath string) int {
+	idPath := dbPath + ".max"
+	if fileExists(idPath) {
+		f, err := os.ReadFile(idPath)
 		if err != nil {
 			return 0
 		}
