@@ -6,6 +6,7 @@ import (
 	"github.com/AfoninaOlga/xkcd/pkg/utils"
 	"github.com/AfoninaOlga/xkcd/pkg/words"
 	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
+	"github.com/schollz/progressbar/v3"
 )
 
 func main() {
@@ -60,14 +61,23 @@ func main() {
 	}
 
 	// adding comics if cnt is bigger than maxId in DB
+	bar := progressbar.Default(int64(cnt))
+	err = bar.Add(maxId)
+	if err != nil {
+		fmt.Println(err)
+	}
 	for i := maxId + 1; i <= int(cnt); i++ {
 		comic, err := xkcdClient.GetComicResponse(i)
 		if err != nil {
 			fmt.Println(err)
 		}
-		keywords, err := words.StemInput(comic.Alt + " " + comic.Transcript)
+		err = bar.Add(1)
 		if err != nil {
 			fmt.Println(err)
+		}
+		keywords, err := words.StemInput(comic.Alt + " " + comic.Transcript)
+		if err != nil {
+			fmt.Printf("Error in comic #%v: %v", i, err)
 		}
 		cm[i] = database.Comic{Url: comic.Url, Keywords: keywords}
 	}
