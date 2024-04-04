@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	cntIsSet, cnt, output := utils.ParseInput()
+	cnt, output := utils.ParseInput()
 
 	c, err := utils.GetConfig("config.yaml")
 	if err != nil {
@@ -40,11 +40,6 @@ func main() {
 			cnt,
 			maxCnt,
 		)
-		cnt = maxCnt
-	}
-
-	//setting comics count if it's not set
-	if !cntIsSet {
 		cnt = maxCnt
 	}
 
