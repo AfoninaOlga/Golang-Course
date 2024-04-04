@@ -17,9 +17,9 @@ type ComicsBase interface {
 }
 
 func main() {
-	cnt, output := utils.ParseInput()
+	cnt, output, configPath := utils.ParseInput()
 
-	config, err := utils.GetConfig("config.yaml")
+	config, err := utils.GetConfig(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config file. Error: %v\n", err)
 		return
@@ -55,19 +55,23 @@ func main() {
 	}
 	var comicDb ComicsBase = &jsonDb
 
+	bar := progressbar.Default(int64(cnt))
 	maxId := comicDb.GetMaxId()
 	//return if all wanted comics are in DB and no output is needed
 	if int(cnt) < maxId && !output {
+		err = bar.Add(int(cnt))
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 
-	bar := progressbar.Default(int64(cnt))
 	err = bar.Add(maxId)
 	if err != nil {
 		fmt.Println(err)
 	}
-	acc := 0
 
+	acc := 0
 	// adding comics if cnt is bigger than maxId in DB
 	for i := maxId + 1; i <= int(cnt); i++ {
 		comic, err := xkcdClient.GetComicResponse(i)
