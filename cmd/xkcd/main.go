@@ -66,11 +66,15 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	acc := 0
+
 	for i := maxId + 1; i <= int(cnt); i++ {
 		comic, err := xkcdClient.GetComicResponse(i)
 		if err != nil {
 			fmt.Println(err)
 		}
+
 		err = bar.Add(1)
 		if err != nil {
 			fmt.Println(err)
@@ -80,14 +84,26 @@ func main() {
 			fmt.Printf("Error in comic #%v: %v", i, err)
 		}
 		cm[i] = database.Comic{Url: comic.Url, Keywords: keywords}
+
+		//intermediate DB writing
+		acc++
+		if acc%50 == 0 {
+			err = database.WriteFile(db, cm, i)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
 	}
 
 	if output {
 		database.DisplayComicMap(cm, int(cnt))
 	}
 
-	err = database.WriteFile(db, cm, int(cnt))
-	if err != nil {
-		fmt.Println(err)
+	//if intermediate writing didn't write all comics
+	if acc%50 != 0 {
+		err = database.WriteFile(db, cm, int(cnt))
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
