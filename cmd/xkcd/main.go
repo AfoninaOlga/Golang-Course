@@ -55,9 +55,9 @@ func main() {
 		return
 	}
 
-	bar := progressbar.Default(int64(cnt))
+	bar := progressbar.NewOptions(cnt, progressbar.OptionShowCount(), progressbar.OptionSetDescription("Getting comics..."))
 	//adding to progressbar count of existing comics
-	err = bar.Add(maxId)
+	err = bar.Set(maxId)
 	if err != nil {
 		log.Println(err)
 	}
