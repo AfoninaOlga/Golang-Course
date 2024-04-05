@@ -2,6 +2,7 @@ package xkcd
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -37,9 +38,14 @@ func (c Client) GetComicsCount() (int, error) {
 }
 
 func getComic(c Client, suffix string) (UrlComic, error) {
-	resp, err := c.Client.Get(c.Url + suffix)
+	url := c.Url + suffix
+	resp, err := c.Client.Get(url)
 	if err != nil {
 		return UrlComic{}, err
+	}
+
+	if resp.StatusCode != 200 {
+		return UrlComic{}, fmt.Errorf("Error getting %v, StatusCode=%v", url, resp.StatusCode)
 	}
 
 	var comic UrlComic
