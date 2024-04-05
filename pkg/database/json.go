@@ -17,7 +17,13 @@ type JsonDatabase struct {
 	maxId  int
 }
 
-func (jb *JsonDatabase) Init(path string) (err error) {
+func New(path string) (JsonDatabase, error) {
+	var jb JsonDatabase
+	err := jb.init(path)
+	return jb, err
+}
+
+func (jb *JsonDatabase) init(path string) (err error) {
 	jb.path = path
 	jb.maxId = getMaxId(path)
 	if fileExists(jb.path) {

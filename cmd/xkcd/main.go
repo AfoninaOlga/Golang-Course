@@ -9,13 +9,6 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-type ComicsBase interface {
-	Flush() error
-	GetAll() map[int]database.Comic
-	AddComic(id int, c database.Comic)
-	GetMaxId() int
-}
-
 func main() {
 	cnt, output, configPath := config.ParseInput()
 
@@ -47,16 +40,14 @@ func main() {
 		cnt = maxCnt
 	}
 
-	var jsonDb database.JsonDatabase
 	// reading DB if exists
-	err = jsonDb.Init(cfg.DB)
+	comicDB, err := database.New(cfg.DB)
 	if err != nil {
 		fmt.Println(err)
 	}
-	var comicDb ComicsBase = &jsonDb
 
 	bar := progressbar.Default(int64(cnt))
-	maxId := comicDb.GetMaxId()
+	maxId := comicDB.GetMaxId()
 	//return if all wanted comics are in DB and no output is needed
 	if int(cnt) < maxId && !output {
 		err = bar.Add(int(cnt))
@@ -87,12 +78,12 @@ func main() {
 		if err != nil {
 			fmt.Printf("Error in comic #%v: %v", i, err)
 		}
-		comicDb.AddComic(i, database.Comic{Url: comic.Url, Keywords: keywords})
+		comicDB.AddComic(i, database.Comic{Url: comic.Url, Keywords: keywords})
 
 		//intermediate DB writing
 		acc++
 		if acc%50 == 0 {
-			err = comicDb.Flush()
+			err = comicDB.Flush()
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -100,13 +91,13 @@ func main() {
 	}
 
 	if output {
-		cm := comicDb.GetAll()
+		cm := comicDB.GetAll()
 		displayComicMap(cm, int(cnt))
 	}
 
 	//if intermediate writing didn't write all comics
 	if acc%50 != 0 {
-		err = comicDb.Flush()
+		err = comicDB.Flush()
 		if err != nil {
 			fmt.Println(err)
 		}
