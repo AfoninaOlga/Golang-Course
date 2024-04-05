@@ -12,6 +12,10 @@ import (
 
 func main() {
 	cnt, output, configPath := config.ParseInput()
+	if cnt <= 0 {
+		fmt.Printf("Nothing to do with %v comics\n", cnt)
+		return
+	}
 
 	cfg, err := config.GetConfig(configPath)
 	if err != nil {
@@ -50,8 +54,8 @@ func main() {
 	bar := progressbar.Default(int64(cnt))
 	maxId := comicDB.GetMaxId()
 	//return if all wanted comics are in DB and no output is needed
-	if int(cnt) < maxId && !output {
-		err = bar.Add(int(cnt))
+	if cnt < maxId && !output {
+		err = bar.Add(cnt)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -65,7 +69,7 @@ func main() {
 
 	acc := 0
 	// adding comics if cnt is bigger than maxId in DB
-	for i := maxId + 1; i <= int(cnt); i++ {
+	for i := maxId + 1; i <= cnt; i++ {
 		comic, err := xkcdClient.GetComic(i)
 		if err != nil {
 			fmt.Println(err)
@@ -93,7 +97,7 @@ func main() {
 
 	if output {
 		cm := comicDB.GetAll()
-		displayComicMap(cm, int(cnt))
+		displayComicMap(cm, cnt)
 	}
 
 	//if intermediate writing didn't write all comics

@@ -8,7 +8,7 @@ import (
 )
 
 type UrlComic struct {
-	Id         uint   `json:"num"`
+	Id         int    `json:"num"`
 	Url        string `json:"img"`
 	Transcript string `json:"transcript"`
 	Alt        string `json:"alt"`
@@ -28,7 +28,7 @@ func (c Client) GetComic(id int) (UrlComic, error) {
 	return getComic(c, "/"+strconv.Itoa(id)+"/info.0.json")
 }
 
-func (c Client) GetComicsCount() (uint, error) {
+func (c Client) GetComicsCount() (int, error) {
 	comic, err := getComic(c, "/info.0.json")
 	if err != nil {
 		return 0, err
