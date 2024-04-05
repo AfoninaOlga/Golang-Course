@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 type UrlComic struct {
@@ -19,8 +20,8 @@ type Client struct {
 	Client http.Client
 }
 
-func NewClient(url string) Client {
-	c := http.Client{}
+func NewClient(url string, timeout time.Duration) Client {
+	c := http.Client{Timeout: timeout}
 	return Client{url, c}
 }
 

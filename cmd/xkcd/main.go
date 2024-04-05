@@ -7,6 +7,7 @@ import (
 	"github.com/AfoninaOlga/xkcd/pkg/words"
 	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
 	"github.com/schollz/progressbar/v3"
+	"time"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 		return
 	}
 
-	xkcdClient := xkcd.NewClient(cfg.Url)
+	xkcdClient := xkcd.NewClient(cfg.Url, 10*time.Second)
 
 	maxCnt, err := xkcdClient.GetComicsCount()
 	if err != nil {
