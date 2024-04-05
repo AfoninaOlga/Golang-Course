@@ -66,7 +66,7 @@ func main() {
 	acc := 0
 	// adding comics if cnt is bigger than maxId in DB
 	for i := maxId + 1; i <= int(cnt); i++ {
-		comic, err := xkcdClient.GetComicResponse(i)
+		comic, err := xkcdClient.GetComic(i)
 		if err != nil {
 			fmt.Println(err)
 		}
