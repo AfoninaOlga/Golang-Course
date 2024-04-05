@@ -7,17 +7,13 @@ import (
 	"unicode"
 )
 
-func checkWord(word string) (ok bool, err error) {
-	ok = true
-	err = nil
-
+func checkWord(word string) error {
 	for _, c := range word {
 		if !unicode.Is(unicode.Latin, c) {
-			ok = false
-			err = fmt.Errorf("unknown letter: %c", c)
+			return fmt.Errorf("unknown letter: %c", c)
 		}
 	}
-	return
+	return nil
 }
 
 func StemInput(input string) ([]string, error) {
@@ -29,8 +25,8 @@ func StemInput(input string) ([]string, error) {
 		return !unicode.IsLetter(c)
 	}
 	for _, s := range strings.FieldsFunc(input, f) {
-		ok, err := checkWord(s)
-		if !ok {
+		err := checkWord(s)
+		if err != nil {
 			return result, err
 		}
 		s = english.Stem(s, false)
