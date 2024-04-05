@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/AfoninaOlga/xkcd/pkg/config"
 	"github.com/AfoninaOlga/xkcd/pkg/database"
-	"github.com/AfoninaOlga/xkcd/pkg/utils"
 	"github.com/AfoninaOlga/xkcd/pkg/words"
 	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
 	"github.com/schollz/progressbar/v3"
@@ -17,20 +17,20 @@ type ComicsBase interface {
 }
 
 func main() {
-	cnt, output, configPath := utils.ParseInput()
+	cnt, output, configPath := config.ParseInput()
 
-	config, err := utils.GetConfig(configPath)
+	cfg, err := config.GetConfig(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config file. Error: %v\n", err)
 		return
 	}
 
-	if config.Url != "https://xkcd.com" {
-		fmt.Printf("Unsuppotrted url %v\n", config.Url)
+	if cfg.Url != "https://xkcd.com" {
+		fmt.Printf("Unsuppotrted url %v\n", cfg.Url)
 		return
 	}
 
-	xkcdClient := xkcd.NewClient(config.Url)
+	xkcdClient := xkcd.NewClient(cfg.Url)
 
 	maxCnt, err := xkcdClient.GetComicsCount()
 	if err != nil {
@@ -49,7 +49,7 @@ func main() {
 
 	var jsonDb database.JsonDatabase
 	// reading DB if exists
-	err = jsonDb.Init(config.DB)
+	err = jsonDb.Init(cfg.DB)
 	if err != nil {
 		fmt.Println(err)
 	}
