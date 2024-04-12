@@ -16,8 +16,8 @@ type UrlComic struct {
 }
 
 type Client struct {
-	Url    string
-	Client http.Client
+	url    string
+	client http.Client
 }
 
 func NewClient(url string, timeout time.Duration) Client {
@@ -38,8 +38,8 @@ func (c Client) GetComicsCount() (int, error) {
 }
 
 func getComic(c Client, suffix string) (UrlComic, error) {
-	url := c.Url + suffix
-	resp, err := c.Client.Get(url)
+	url := c.url + suffix
+	resp, err := c.client.Get(url)
 	if err != nil {
 		return UrlComic{}, err
 	}
