@@ -3,7 +3,7 @@ package database
 import (
 	"encoding/json"
 	"os"
-	"strconv"
+	"sync"
 )
 
 type Comic struct {
@@ -15,6 +15,7 @@ type JsonDatabase struct {
 	comics map[int]Comic
 	path   string
 	maxId  int
+	mtx    *sync.Mutex
 }
 
 func New(path string) (JsonDatabase, error) {
@@ -23,40 +24,46 @@ func New(path string) (JsonDatabase, error) {
 	return jb, err
 }
 
-func (jb *JsonDatabase) init(path string) (err error) {
+func (jb *JsonDatabase) init(path string) error {
 	jb.path = path
-	jb.maxId = getMaxId(path)
+	jb.comics = map[int]Comic{}
+	jb.maxId = 0
+	jb.mtx = &sync.Mutex{}
+
 	if fileExists(jb.path) {
 		var cm map[int]Comic
-		var data []byte
-		data, err = os.ReadFile(jb.path)
+		data, err := os.ReadFile(jb.path)
 		if err != nil {
-			return
+			return err
 		}
-		err = json.Unmarshal(data, &cm)
+		if err = json.Unmarshal(data, &cm); err != nil {
+			return err
+		}
 		jb.comics = cm
-	} else {
-		jb.comics = map[int]Comic{}
+		for id := range cm {
+			if id > jb.maxId {
+				jb.maxId = id
+			}
+		}
 	}
-	return
+	return nil
 }
 
 func (jb *JsonDatabase) Flush() (err error) {
-	if jb.maxId > getMaxId(jb.path) {
-		//write maxId to file
-		err = os.WriteFile(jb.path+".max", []byte(strconv.Itoa(jb.maxId)), 0644)
-		if err != nil {
-			return err
-		}
-		var file []byte
-		file, err = json.MarshalIndent(jb.comics, "", " ")
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(jb.path, file, 0644)
-		return
+	var file []byte
+	file, err = json.MarshalIndent(jb.comics, "", " ")
+	if err != nil {
+		return err
 	}
+	err = os.WriteFile(jb.path, file, 0644)
 	return
+}
+
+func (jb *JsonDatabase) FlushParallel() error {
+	jb.mtx.Lock()
+	defer jb.mtx.Unlock()
+	err := jb.Flush()
+	return err
 }
 
 func (jb *JsonDatabase) GetAll() map[int]Comic {
@@ -70,25 +77,14 @@ func (jb *JsonDatabase) AddComic(id int, c Comic) {
 	}
 }
 
-func (jb *JsonDatabase) GetMaxId() int {
-	return jb.maxId
+func (jb *JsonDatabase) AddComicParallel(id int, c Comic) {
+	jb.mtx.Lock()
+	jb.AddComic(id, c)
+	jb.mtx.Unlock()
 }
 
-func getMaxId(dbPath string) int {
-	idPath := dbPath + ".max"
-	if fileExists(idPath) {
-		f, err := os.ReadFile(idPath)
-		if err != nil {
-			return 0
-		}
-		res, err := strconv.Atoi(string(f))
-		if err != nil {
-			return 0
-		}
-		return res
-	} else {
-		return 0
-	}
+func (jb *JsonDatabase) GetMaxId() int {
+	return jb.maxId
 }
 
 func fileExists(filename string) bool {
@@ -97,4 +93,14 @@ func fileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func (jb *JsonDatabase) GetMissingIds() []int {
+	var ids []int
+	for i := 1; i < jb.maxId; i++ {
+		if _, ok := jb.comics[i]; !ok && i != 404 {
+			ids = append(ids, i)
+		}
+	}
+	return ids
 }
