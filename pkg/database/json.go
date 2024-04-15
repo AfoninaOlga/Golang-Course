@@ -15,7 +15,7 @@ type JsonDatabase struct {
 	comics map[int]Comic
 	path   string
 	maxId  int
-	mtx    sync.Mutex
+	mtx    *sync.Mutex
 }
 
 func New(path string) (JsonDatabase, error) {
@@ -28,7 +28,7 @@ func (jb *JsonDatabase) init(path string) error {
 	jb.path = path
 	jb.comics = map[int]Comic{}
 	jb.maxId = 0
-	jb.mtx = sync.Mutex{}
+	jb.mtx = &sync.Mutex{}
 
 	if fileExists(jb.path) {
 		var cm map[int]Comic
