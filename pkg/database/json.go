@@ -15,7 +15,7 @@ type JsonDatabase struct {
 	comics map[int]Comic
 	path   string
 	maxId  int
-	mtx    *sync.Mutex
+	mtx    sync.Mutex
 }
 
 func New(path string) (JsonDatabase, error) {
@@ -28,7 +28,7 @@ func (jb *JsonDatabase) init(path string) error {
 	jb.path = path
 	jb.comics = map[int]Comic{}
 	jb.maxId = 0
-	jb.mtx = &sync.Mutex{}
+	jb.mtx = sync.Mutex{}
 
 	if fileExists(jb.path) {
 		var cm map[int]Comic
@@ -49,7 +49,7 @@ func (jb *JsonDatabase) init(path string) error {
 	return nil
 }
 
-func (jb *JsonDatabase) Flush() (err error) {
+func (jb *JsonDatabase) flush() (err error) {
 	var file []byte
 	file, err = json.MarshalIndent(jb.comics, "", " ")
 	if err != nil {
@@ -59,28 +59,31 @@ func (jb *JsonDatabase) Flush() (err error) {
 	return
 }
 
-func (jb *JsonDatabase) FlushParallel() error {
+func (jb *JsonDatabase) Flush() error {
 	jb.mtx.Lock()
 	defer jb.mtx.Unlock()
-	err := jb.Flush()
-	return err
+	return jb.flush()
 }
 
 func (jb *JsonDatabase) GetAll() map[int]Comic {
 	return jb.comics
 }
 
-func (jb *JsonDatabase) AddComic(id int, c Comic) {
+func (jb *JsonDatabase) addComic(id int, c Comic) error {
 	jb.comics[id] = c
 	if id > jb.maxId {
 		jb.maxId = id
 	}
+	if len(jb.comics)%50 == 0 {
+		return jb.flush()
+	}
+	return nil
 }
 
-func (jb *JsonDatabase) AddComicParallel(id int, c Comic) {
+func (jb *JsonDatabase) AddComic(id int, c Comic) error {
 	jb.mtx.Lock()
-	jb.AddComic(id, c)
-	jb.mtx.Unlock()
+	defer jb.mtx.Unlock()
+	return jb.addComic(id, c)
 }
 
 func (jb *JsonDatabase) GetMaxId() int {

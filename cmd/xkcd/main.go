@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"github.com/AfoninaOlga/xkcd/pkg/config"
 	"github.com/AfoninaOlga/xkcd/pkg/database"
 	"github.com/AfoninaOlga/xkcd/pkg/words"
 	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
 	"log"
+	"os"
+	"os/signal"
+	"sync"
 	"time"
 )
 
@@ -31,63 +35,56 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	defer func() {
+		if err := comicDB.Flush(); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	curId := comicDB.GetMaxId() + 1
 
 	jobs := make(chan int, goCnt)
-	done := make(chan bool, goCnt)
+	var wg sync.WaitGroup
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
 	for w := 1; w <= goCnt; w++ {
-		go getParallel(&xkcdClient, &comicDB, jobs, done)
+		wg.Add(1)
+		go getParallel(&xkcdClient, &comicDB, jobs, &wg, &cancelFunc)
 	}
 
-	for i, id := range comicDB.GetMissingIds() {
+	for _, id := range comicDB.GetMissingIds() {
 		jobs <- id
-
-		if i%50 == 0 {
-			err = comicDB.FlushParallel()
-			if err != nil {
-				log.Println(err)
-			}
-		}
 	}
 LOOP:
 	for {
 		select {
-		case <-done:
+		case <-c:
+			cancelFunc()
+		case <-ctx.Done():
 			break LOOP
 		case jobs <- curId:
 			curId++
-			if curId%50 == 0 {
-				err = comicDB.FlushParallel()
-				if err != nil {
-					log.Println(err)
-				}
-			}
 		}
 	}
 	close(jobs)
 
 	//waiting for workers to finish
-	for w := 1; w < goCnt; w++ {
-		<-done
-	}
-
-	err = comicDB.Flush()
-	if err != nil {
-		log.Println(err)
-	}
+	wg.Wait()
 }
 
-func getParallel(xkcdClient *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, done chan<- bool) {
+func getParallel(xkcdClient *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg *sync.WaitGroup, cancelFunc *context.CancelFunc) {
+	defer wg.Done()
 	for id := range jobs {
+		log.Printf("Getting Comic №%v", id)
 		comic, err := xkcdClient.GetComic(id)
 
 		if err != nil {
 			log.Println(err)
 			//no more comics
 			if id != 404 {
-
-				done <- true
+				(*cancelFunc)()
 				return
 			}
 			continue
@@ -97,7 +94,8 @@ func getParallel(xkcdClient *xkcd.Client, db *database.JsonDatabase, jobs <-chan
 		if err != nil {
 			log.Printf("Stemming error in comic #%v: %v", id, err)
 		}
-		db.AddComicParallel(id, database.Comic{Url: comic.Url, Keywords: keywords})
+		if err := db.AddComic(id, database.Comic{Url: comic.Url, Keywords: keywords}); err != nil {
+			log.Println(err)
+		}
 	}
-	done <- true
 }
