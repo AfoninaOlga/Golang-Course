@@ -16,12 +16,16 @@ type UrlComic struct {
 }
 
 type Client struct {
-	Url    string
-	Client http.Client
+	url    string
+	client http.Client
 }
 
-func NewClient(url string, timeout time.Duration) Client {
-	c := http.Client{Timeout: timeout}
+func NewClient(url string, timeout time.Duration, connectionLimit int) Client {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = connectionLimit
+	t.MaxConnsPerHost = connectionLimit
+	t.MaxIdleConnsPerHost = connectionLimit
+	c := http.Client{Timeout: timeout, Transport: t}
 	return Client{url, c}
 }
 
@@ -38,8 +42,8 @@ func (c Client) GetComicsCount() (int, error) {
 }
 
 func getComic(c Client, suffix string) (UrlComic, error) {
-	url := c.Url + suffix
-	resp, err := c.Client.Get(url)
+	url := c.url + suffix
+	resp, err := c.client.Get(url)
 	if err != nil {
 		return UrlComic{}, err
 	}
