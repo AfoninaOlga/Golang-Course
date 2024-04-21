@@ -107,3 +107,11 @@ func (jb *JsonDatabase) GetMissingIds() []int {
 	}
 	return ids
 }
+
+func (jb *JsonDatabase) Exists(id int) bool {
+	jb.mtx.Lock()
+	defer jb.mtx.Unlock()
+	_, ok := jb.comics[id]
+	return ok
+}
+

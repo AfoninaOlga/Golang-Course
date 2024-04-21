@@ -44,10 +44,12 @@ func main() {
 	getComics(&comicDB, &xkcdClient, goCnt)
 }
 
-func worker(xkcdClient *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg *sync.WaitGroup, cancelFunc *context.CancelFunc) {
+func worker(xkcdClient *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	defer (*cancelFunc)()
 	for id := range jobs {
+		if db.Exists(id) {
+			continue
+		}
 		log.Printf("Getting Comic №%v", id)
 		comic, err := xkcdClient.GetComic(id)
 
@@ -71,7 +73,7 @@ func worker(xkcdClient *xkcd.Client, db *database.JsonDatabase, jobs <-chan int,
 }
 
 func getComics(comicDB *database.JsonDatabase, client *xkcd.Client, goCnt int) {
-	curId := comicDB.GetMaxId() + 1
+	curId := 1
 	defer func() {
 		if err := comicDB.Flush(); err != nil {
 			log.Println(err)
@@ -80,33 +82,30 @@ func getComics(comicDB *database.JsonDatabase, client *xkcd.Client, goCnt int) {
 
 	jobs := make(chan int, goCnt)
 	var wg sync.WaitGroup
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt)
 
 	for w := 1; w <= goCnt; w++ {
 		wg.Add(1)
-		go worker(client, comicDB, jobs, &wg, &cancelFunc)
+		go worker(client, comicDB, jobs, &wg)
 	}
 
-	for _, id := range comicDB.GetMissingIds() {
-		jobs <- id
-	}
+	go func() {
+		wg.Wait()
+		cancelFunc()
+	}()
+
 LOOP:
 	for {
 		select {
-		case <-c:
-			cancelFunc()
-			break LOOP
 		case <-ctx.Done():
+			close(jobs)
 			break LOOP
 		case jobs <- curId:
 			curId++
 		}
 	}
-	close(jobs)
 
-	//waiting for workers to finish
-	wg.Wait()
+	if err := comicDB.Flush(); err != nil {
+		log.Println(err)
+	}
 }
