@@ -21,10 +21,10 @@ type JsonDatabase struct {
 
 const indexPath = "index.json"
 
-func New(path string) (JsonDatabase, error) {
+func New(path string) (*JsonDatabase, error) {
 	var jb JsonDatabase
 	err := jb.init(path)
-	return jb, err
+	return &jb, err
 }
 
 func (jb *JsonDatabase) init(path string) error {

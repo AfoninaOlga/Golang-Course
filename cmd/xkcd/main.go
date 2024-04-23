@@ -37,7 +37,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	a := app.New(&comicDB, &xkcdClient)
+	a := app.New(comicDB, xkcdClient)
 
 	a.LoadComics(goCnt)
 

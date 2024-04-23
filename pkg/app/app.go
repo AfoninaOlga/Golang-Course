@@ -82,12 +82,12 @@ func worker(client *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg 
 		}
 
 		keywords, err := words.StemInput(comic.Alt + " " + comic.Transcript)
-		// sorting to use binary search in DBSearch
 
 		if err != nil {
 			log.Printf("Stemming error in comic #%v: %v", id, err)
 		}
 
+		// sorting to use binary search in DBSearch
 		slices.Sort(keywords)
 		if err := db.AddComic(id, database.Comic{Url: comic.Url, Keywords: keywords}); err != nil {
 			log.Println(err)
