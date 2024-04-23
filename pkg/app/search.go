@@ -43,7 +43,7 @@ func (a *App) DBSearch(keywords []string) []FoundComic {
 }
 
 func (a *App) GetTopN(keywords []string, n int, useIndex bool) []FoundComic {
-	found := make([]FoundComic, 0, a.db.Size())
+	var found []FoundComic
 	if useIndex {
 		found = a.IndexSearch(keywords)
 	} else {
