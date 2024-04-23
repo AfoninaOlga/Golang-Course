@@ -29,34 +29,32 @@ func New(path string) (JsonDatabase, error) {
 
 func (jb *JsonDatabase) init(path string) error {
 	jb.path = path
-	jb.comics = map[int]Comic{}
-	jb.index = map[string][]int{}
+	jb.comics = make(map[int]Comic)
+	jb.index = make(map[string][]int)
 	jb.maxId = 0
 	jb.mtx = &sync.Mutex{}
 
 	if fileExists(jb.path) {
-		var cm map[int]Comic
 		data, err := os.ReadFile(jb.path)
 		if err != nil {
 			return err
 		}
-		if err = json.Unmarshal(data, &cm); err != nil {
+		if err = json.Unmarshal(data, &jb.comics); err != nil {
 			return err
 		}
-		jb.comics = cm
-		for id := range cm {
+
+		for id := range jb.comics {
 			if id > jb.maxId {
 				jb.maxId = id
 			}
 		}
 	}
 	if fileExists(indexPath) {
-		var im map[string][]int
 		data, err := os.ReadFile(indexPath)
 		if err != nil {
 			return err
 		}
-		if err = json.Unmarshal(data, &im); err != nil {
+		if err = json.Unmarshal(data, &jb.index); err != nil {
 			return err
 		}
 	} else {
