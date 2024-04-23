@@ -21,8 +21,10 @@ func GetConfig(path string) (c Config, err error) {
 	return
 }
 
-func ParseFlag() (configPath string) {
+func ParseFlag() (configPath string, sQuery string, useIndex bool) {
 	flag.StringVar(&configPath, "c", "config.yaml", "flag sets config file path")
+	flag.StringVar(&sQuery, "s", "", "flag sets search query")
+	flag.BoolVar(&useIndex, "i", false, "flag sets index usage")
 	flag.Parse()
 	return
 }

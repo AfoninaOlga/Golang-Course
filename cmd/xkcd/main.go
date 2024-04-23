@@ -1,20 +1,22 @@
 package main
 
 import (
-	"context"
+	"fmt"
+	"github.com/AfoninaOlga/xkcd/pkg/app"
 	"github.com/AfoninaOlga/xkcd/pkg/config"
 	"github.com/AfoninaOlga/xkcd/pkg/database"
 	"github.com/AfoninaOlga/xkcd/pkg/words"
 	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
 	"log"
-	"os"
-	"os/signal"
-	"sync"
 	"time"
 )
 
 func main() {
-	configPath := config.ParseFlag()
+	configPath, sQuery, useIndex := config.ParseFlag()
+
+	if sQuery == "" {
+		return
+	}
 
 	cfg, err := config.GetConfig(configPath)
 	if err != nil {
@@ -35,77 +37,15 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	defer func() {
-		if err := comicDB.Flush(); err != nil {
-			log.Println(err)
-		}
-	}()
+	a := app.New(&comicDB, &xkcdClient)
 
-	getComics(&comicDB, &xkcdClient, goCnt)
-}
+	a.LoadComics(goCnt)
 
-func worker(xkcdClient *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for id := range jobs {
-		if db.Exists(id) {
-			continue
-		}
-		log.Printf("Getting Comic №%v", id)
-		comic, err := xkcdClient.GetComic(id)
-
-		if err != nil {
-			log.Println(err)
-			//no more comics
-			if id != 404 {
-				return
-			}
-			continue
-		}
-
-		keywords, err := words.StemInput(comic.Alt + " " + comic.Transcript)
-		if err != nil {
-			log.Printf("Stemming error in comic #%v: %v", id, err)
-		}
-		if err := db.AddComic(id, database.Comic{Url: comic.Url, Keywords: keywords}); err != nil {
-			log.Println(err)
-		}
-	}
-}
-
-func getComics(comicDB *database.JsonDatabase, client *xkcd.Client, goCnt int) {
-	curId := 1
-	defer func() {
-		if err := comicDB.Flush(); err != nil {
-			log.Println(err)
-		}
-	}()
-
-	jobs := make(chan int, goCnt)
-	var wg sync.WaitGroup
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt)
-
-	for w := 1; w <= goCnt; w++ {
-		wg.Add(1)
-		go worker(client, comicDB, jobs, &wg)
-	}
-
-	go func() {
-		wg.Wait()
-		cancelFunc()
-	}()
-
-LOOP:
-	for {
-		select {
-		case <-ctx.Done():
-			close(jobs)
-			break LOOP
-		case jobs <- curId:
-			curId++
-		}
-	}
-
-	if err := comicDB.Flush(); err != nil {
+	stemmed, err := words.StemInput(sQuery)
+	if err != nil {
 		log.Println(err)
+	}
+	for id, comic := range a.GetTopN(stemmed, 10, useIndex) {
+		fmt.Printf("#%v relevant (%v overlap): %v\n", id+1, comic.Count, comic.Url)
 	}
 }

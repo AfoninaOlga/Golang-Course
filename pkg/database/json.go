@@ -16,7 +16,10 @@ type JsonDatabase struct {
 	path   string
 	maxId  int
 	mtx    *sync.Mutex
+	index  map[string][]int
 }
+
+const indexPath = "index.json"
 
 func New(path string) (JsonDatabase, error) {
 	var jb JsonDatabase
@@ -27,6 +30,7 @@ func New(path string) (JsonDatabase, error) {
 func (jb *JsonDatabase) init(path string) error {
 	jb.path = path
 	jb.comics = map[int]Comic{}
+	jb.index = map[string][]int{}
 	jb.maxId = 0
 	jb.mtx = &sync.Mutex{}
 
@@ -46,17 +50,39 @@ func (jb *JsonDatabase) init(path string) error {
 			}
 		}
 	}
+	if fileExists(indexPath) {
+		var im map[string][]int
+		data, err := os.ReadFile(indexPath)
+		if err != nil {
+			return err
+		}
+		if err = json.Unmarshal(data, &im); err != nil {
+			return err
+		}
+	} else {
+		for id := range jb.comics {
+			for _, k := range jb.comics[id].Keywords {
+				jb.index[k] = append(jb.index[k], id)
+			}
+		}
+	}
 	return nil
 }
 
-func (jb *JsonDatabase) flush() (err error) {
-	var file []byte
-	file, err = json.MarshalIndent(jb.comics, "", " ")
+func (jb *JsonDatabase) flush() error {
+	file, err := json.MarshalIndent(jb.comics, "", " ")
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(jb.path, file, 0644)
-	return
+	if err = os.WriteFile(jb.path, file, 0644); err != nil {
+		return err
+	}
+
+	file, err = json.MarshalIndent(jb.index, "", " ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(indexPath, file, 0644)
 }
 
 func (jb *JsonDatabase) Flush() error {
@@ -69,11 +95,20 @@ func (jb *JsonDatabase) GetAll() map[int]Comic {
 	return jb.comics
 }
 
+func (jb *JsonDatabase) GetIndex() map[string][]int {
+	return jb.index
+}
+
 func (jb *JsonDatabase) addComic(id int, c Comic) error {
 	jb.comics[id] = c
+	for _, k := range c.Keywords {
+		jb.index[k] = append(jb.index[k], id)
+	}
+
 	if id > jb.maxId {
 		jb.maxId = id
 	}
+
 	if len(jb.comics)%50 == 0 {
 		return jb.flush()
 	}
@@ -115,3 +150,6 @@ func (jb *JsonDatabase) Exists(id int) bool {
 	return ok
 }
 
+func (jb *JsonDatabase) Size() int {
+	return len(jb.comics)
+}
