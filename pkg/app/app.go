@@ -26,11 +26,6 @@ func (a *App) LoadComics(goCnt int) {
 	if a.db.GetMaxId()-1 == a.db.Size() {
 		curId = a.db.GetMaxId() + 1
 	}
-	defer func() {
-		if err := a.db.Flush(); err != nil {
-			log.Println(err)
-		}
-	}()
 
 	jobs := make(chan int, goCnt)
 	var wg sync.WaitGroup
