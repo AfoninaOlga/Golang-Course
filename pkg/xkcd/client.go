@@ -13,6 +13,7 @@ type UrlComic struct {
 	Url        string `json:"img"`
 	Transcript string `json:"transcript"`
 	Alt        string `json:"alt"`
+	Title      string `json:"title"`
 }
 
 type Client struct {
@@ -20,13 +21,13 @@ type Client struct {
 	client http.Client
 }
 
-func NewClient(url string, timeout time.Duration, connectionLimit int) Client {
+func NewClient(url string, timeout time.Duration, connectionLimit int) *Client {
 	t := http.DefaultTransport.(*http.Transport).Clone()
 	t.MaxIdleConns = connectionLimit
 	t.MaxConnsPerHost = connectionLimit
 	t.MaxIdleConnsPerHost = connectionLimit
 	c := http.Client{Timeout: timeout, Transport: t}
-	return Client{url, c}
+	return &Client{url, c}
 }
 
 func (c Client) GetComic(id int) (UrlComic, error) {

@@ -1,6 +1,7 @@
 package words
 
 import (
+	"errors"
 	"fmt"
 	"github.com/kljensen/snowball/english"
 	"strings"
@@ -10,7 +11,7 @@ import (
 func checkWord(word string) error {
 	for _, c := range word {
 		if !unicode.Is(unicode.Latin, c) {
-			return fmt.Errorf("unknown letter: %c", c)
+			return fmt.Errorf("unknown letter: %c ", c)
 		}
 	}
 	return nil
@@ -18,16 +19,15 @@ func checkWord(word string) error {
 
 func StemInput(input string) ([]string, error) {
 	var result []string
-	//comic transcript may contain `\n` attached to a word
-	input = strings.ReplaceAll(input, `\n`, " ")
+	var err error
 	stemmedWords := make(map[string]bool)
 	f := func(c rune) bool {
 		return !unicode.IsLetter(c)
 	}
 	for _, s := range strings.FieldsFunc(input, f) {
-		err := checkWord(s)
-		if err != nil {
-			return result, err
+		if checkErr := checkWord(s); checkErr != nil {
+			err = errors.Join(err, checkErr)
+			continue
 		}
 		s = english.Stem(s, false)
 		// added "alt" to stop-list cause transcript may contain "Alt:<alternative description>"
@@ -37,5 +37,5 @@ func StemInput(input string) ([]string, error) {
 		stemmedWords[s] = true
 		result = append(result, s)
 	}
-	return result, nil
+	return result, err
 }
