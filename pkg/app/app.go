@@ -81,7 +81,7 @@ func worker(client *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg 
 			continue
 		}
 
-		keywords, err := words.StemInput(comic.Alt + " " + comic.Transcript)
+		keywords, err := words.StemInput(comic.Alt + " " + comic.Transcript + " " + comic.Title)
 
 		if err != nil {
 			log.Printf("Stemming error in comic #%v: %v", id, err)

@@ -13,6 +13,7 @@ type UrlComic struct {
 	Url        string `json:"img"`
 	Transcript string `json:"transcript"`
 	Alt        string `json:"alt"`
+	Title      string `json:"title"`
 }
 
 type Client struct {
