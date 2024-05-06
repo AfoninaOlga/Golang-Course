@@ -1,6 +1,9 @@
 package port
 
-import "github.com/AfoninaOlga/xkcd/internal/core/domain"
+import (
+	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"net/http"
+)
 
 type Client interface {
 	GetComic(int) (domain.UrlComic, error)
@@ -16,6 +19,16 @@ type ComicRepository interface {
 	Flush() error
 }
 
+type ComicService interface {
+	LoadComics() int
+	Search(string) []domain.FoundComic
+}
+
 type Stemmer interface {
-	Stem(string) []string
+	Stem(string) ([]string, error)
+}
+
+type ComicHandler interface {
+	Search(http.ResponseWriter, *http.Request)
+	Update(http.ResponseWriter, *http.Request)
 }

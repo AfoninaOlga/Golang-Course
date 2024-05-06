@@ -8,7 +8,7 @@ import (
 var keywords = []string{"account", "zip", "zero", "know", "question", "complain", "overlap", "live", "guess", "truth", "save", "bug"}
 
 func BenchmarkDB(b *testing.B) {
-	db, _ := json.New("../../database.json")
+	db, _ := json.New("../../../database.json")
 	app := XkcdService{db: db}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -17,7 +17,7 @@ func BenchmarkDB(b *testing.B) {
 }
 
 func BenchmarkIndex(b *testing.B) {
-	db, _ := json.New("../../database.json")
+	db, _ := json.New("../../../database.json")
 	app := XkcdService{db: db}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

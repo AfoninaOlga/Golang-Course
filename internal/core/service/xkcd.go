@@ -13,25 +13,29 @@ import (
 )
 
 type XkcdService struct {
-	client port.Client
-	db     port.ComicRepository
+	client      port.Client
+	db          port.ComicRepository
+	searchLimit int
+	goCnt       int
 }
 
-func New(db port.ComicRepository, c port.Client) *XkcdService {
-	return &XkcdService{client: c, db: db}
+func New(db port.ComicRepository, c port.Client, searchLimit int, goCnt int) *XkcdService {
+	return &XkcdService{client: c, db: db, searchLimit: searchLimit, goCnt: goCnt}
 }
 
-func (xs *XkcdService) LoadComics(goCnt int) {
+func (xs *XkcdService) LoadComics() int {
+	size := xs.db.Size()
+
 	curId := 1
 	if xs.db.GetMaxId()-1 == xs.db.Size() {
 		curId = xs.db.GetMaxId() + 1
 	}
 
-	jobs := make(chan int, goCnt)
+	jobs := make(chan int, xs.goCnt)
 	var wg sync.WaitGroup
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt)
 
-	for w := 1; w <= goCnt; w++ {
+	for w := 1; w <= xs.goCnt; w++ {
 		wg.Add(1)
 		go worker(xs.client, xs.db, jobs, &wg)
 	}
@@ -51,10 +55,18 @@ LOOP:
 			curId++
 		}
 	}
-
 	if err := xs.db.Flush(); err != nil {
 		log.Println(err)
 	}
+	return xs.db.Size() - size
+}
+
+func (xs *XkcdService) Search(text string) []domain.FoundComic {
+	keywords, err := stemmer.Stem(text)
+	if err != nil {
+		log.Println("Error stemming search query:", err)
+	}
+	return xs.GetTopN(keywords, xs.searchLimit)
 }
 
 func worker(client port.Client, db port.ComicRepository, jobs <-chan int, wg *sync.WaitGroup) {

@@ -14,7 +14,7 @@ type UrlComic struct {
 }
 
 type FoundComic struct {
-	Id    int
-	Url   string
-	Count int
+	Id    int    `json:"-"`
+	Url   string `json:"url"`
+	Count int    `json:"-"`
 }
