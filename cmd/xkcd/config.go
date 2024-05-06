@@ -10,6 +10,7 @@ type Config struct {
 	Url            string `yaml:"source_url"`
 	DB             string `yaml:"db_file"`
 	GoroutineCount int    `yaml:"parallel"`
+	port           int    `yaml:"port"`
 }
 
 func GetConfig(path string) (c Config, err error) {
@@ -21,10 +22,9 @@ func GetConfig(path string) (c Config, err error) {
 	return
 }
 
-func ParseFlag() (configPath string, sQuery string, useIndex bool) {
+func ParseFlag() (configPath string, port int) {
 	flag.StringVar(&configPath, "c", "config.yaml", "flag sets config file path")
-	flag.StringVar(&sQuery, "s", "", "flag sets search query")
-	flag.BoolVar(&useIndex, "i", false, "flag sets index usage")
+	flag.IntVar(&port, "p", -1, "flag sets port for the server")
 	flag.Parse()
 	return
 }

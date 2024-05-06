@@ -1,5 +1,5 @@
 srcdir=./cmd/xkcd
-TARGET=xkcd
+TARGET=xkcd-server
 
 build: deps
 	go build -o $(TARGET) $(srcdir)
