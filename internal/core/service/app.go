@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
-	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/json"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/stemmer"
+	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/internal/core/port"
 	"log"
 	"os"
 	"os/signal"
@@ -11,19 +12,19 @@ import (
 	"sync"
 )
 
-type App struct {
-	client *client.Client
-	db     *json.JsonDatabase
+type XkcdService struct {
+	client port.Client
+	db     port.ComicRepository
 }
 
-func New(db *json.JsonDatabase, c *client.Client) *App {
-	return &App{client: c, db: db}
+func New(db port.ComicRepository, c port.Client) *XkcdService {
+	return &XkcdService{client: c, db: db}
 }
 
-func (a *App) LoadComics(goCnt int) {
+func (xs *XkcdService) LoadComics(goCnt int) {
 	curId := 1
-	if a.db.GetMaxId()-1 == a.db.Size() {
-		curId = a.db.GetMaxId() + 1
+	if xs.db.GetMaxId()-1 == xs.db.Size() {
+		curId = xs.db.GetMaxId() + 1
 	}
 
 	jobs := make(chan int, goCnt)
@@ -32,7 +33,7 @@ func (a *App) LoadComics(goCnt int) {
 
 	for w := 1; w <= goCnt; w++ {
 		wg.Add(1)
-		go worker(a.client, a.db, jobs, &wg)
+		go worker(xs.client, xs.db, jobs, &wg)
 	}
 
 	go func() {
@@ -51,12 +52,12 @@ LOOP:
 		}
 	}
 
-	if err := a.db.Flush(); err != nil {
+	if err := xs.db.Flush(); err != nil {
 		log.Println(err)
 	}
 }
 
-func worker(client *client.Client, db *json.JsonDatabase, jobs <-chan int, wg *sync.WaitGroup) {
+func worker(client port.Client, db port.ComicRepository, jobs <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for id := range jobs {
 		if db.Exists(id) {
@@ -75,7 +76,7 @@ func worker(client *client.Client, db *json.JsonDatabase, jobs <-chan int, wg *s
 			continue
 		}
 
-		keywords, err := client.StemInput(comic.Alt + " " + comic.Transcript + " " + comic.Title)
+		keywords, err := stemmer.Stem(comic.Alt + " " + comic.Transcript + " " + comic.Title)
 
 		if err != nil {
 			log.Printf("Stemming error in comic #%v: %v", id, err)
@@ -83,7 +84,8 @@ func worker(client *client.Client, db *json.JsonDatabase, jobs <-chan int, wg *s
 
 		// sorting to use binary search in DBSearch
 		slices.Sort(keywords)
-		if err := db.AddComic(id, json.Comic{Url: comic.Url, Keywords: keywords}); err != nil {
+
+		if err := db.AddComic(id, domain.Comic{Url: comic.Url, Keywords: keywords}); err != nil {
 			log.Println(err)
 		}
 	}

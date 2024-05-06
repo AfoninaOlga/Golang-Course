@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/json"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/stemmer"
 	"github.com/AfoninaOlga/xkcd/internal/core/service"
 	"log"
 	"time"
 )
 
 func main() {
-	configPath, sQuery, useIndex := ParseFlag()
+	configPath, sQuery, _ := ParseFlag()
 
 	if sQuery == "" {
 		return
@@ -39,11 +40,12 @@ func main() {
 
 	a.LoadComics(goCnt)
 
-	stemmed, err := client.StemInput(sQuery)
+	stemmed, err := stemmer.Stem(sQuery)
+
 	if err != nil {
 		log.Println(err)
 	}
-	for id, comic := range a.GetTopN(stemmed, 10, useIndex) {
+	for id, comic := range a.GetTopN(stemmed, 10) {
 		fmt.Printf("#%v relevant (%v overlap): %v\n", id+1, comic.Count, comic.Url)
 	}
 }

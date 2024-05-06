@@ -10,20 +10,20 @@ type FoundComic struct {
 	Count int
 }
 
-func (a *App) indexSearch(keywords []string) map[int]int {
+func (xs *XkcdService) indexSearch(keywords []string) map[int]int {
 	counts := make(map[int]int)
 	for _, k := range keywords {
-		for _, id := range a.db.GetIndex()[k] {
+		for _, id := range xs.db.GetIndex()[k] {
 			counts[id]++
 		}
 	}
 	return counts
 }
 
-func (a *App) dbSearch(keywords []string) map[int]int {
+func (xs *XkcdService) dbSearch(keywords []string) map[int]int {
 	counts := make(map[int]int)
 	for _, k := range keywords {
-		for id, c := range a.db.GetAll() {
+		for id, c := range xs.db.GetAll() {
 			if _, contains := slices.BinarySearch(c.Keywords, k); contains {
 				counts[id]++
 			}
@@ -32,16 +32,12 @@ func (a *App) dbSearch(keywords []string) map[int]int {
 	return counts
 }
 
-func (a *App) GetTopN(keywords []string, n int, useIndex bool) []FoundComic {
-	found := make([]FoundComic, 0, a.db.Size())
-	comics := a.db.GetAll()
+func (xs *XkcdService) GetTopN(keywords []string, n int) []FoundComic {
+	found := make([]FoundComic, 0, xs.db.Size())
+	comics := xs.db.GetAll()
 	var counts map[int]int
 
-	if useIndex {
-		counts = a.indexSearch(keywords)
-	} else {
-		counts = a.dbSearch(keywords)
-	}
+	counts = xs.indexSearch(keywords)
 
 	for id, cnt := range counts {
 		found = append(found, FoundComic{Id: id, Count: cnt, Url: comics[id].Url})

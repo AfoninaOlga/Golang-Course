@@ -3,18 +3,11 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/AfoninaOlga/xkcd/internal/core/domain"
 	"net/http"
 	"strconv"
 	"time"
 )
-
-type UrlComic struct {
-	Id         int    `json:"num"`
-	Url        string `json:"img"`
-	Transcript string `json:"transcript"`
-	Alt        string `json:"alt"`
-	Title      string `json:"title"`
-}
 
 type Client struct {
 	url    string
@@ -30,7 +23,7 @@ func NewClient(url string, timeout time.Duration, connectionLimit int) *Client {
 	return &Client{url, c}
 }
 
-func (c Client) GetComic(id int) (UrlComic, error) {
+func (c Client) GetComic(id int) (domain.UrlComic, error) {
 	return getComic(c, "/"+strconv.Itoa(id)+"/info.0.json")
 }
 
@@ -42,18 +35,18 @@ func (c Client) GetComicsCount() (int, error) {
 	return comic.Id, nil
 }
 
-func getComic(c Client, suffix string) (UrlComic, error) {
+func getComic(c Client, suffix string) (domain.UrlComic, error) {
 	url := c.url + suffix
 	resp, err := c.client.Get(url)
 	if err != nil {
-		return UrlComic{}, err
+		return domain.UrlComic{}, err
 	}
 
 	if resp.StatusCode != 200 {
-		return UrlComic{}, fmt.Errorf("Error getting %v, StatusCode=%v", url, resp.StatusCode)
+		return domain.UrlComic{}, fmt.Errorf("Error getting %v, StatusCode=%v", url, resp.StatusCode)
 	}
 
-	var comic UrlComic
+	var comic domain.UrlComic
 	err = json.NewDecoder(resp.Body).Decode(&comic)
 	return comic, err
 }
