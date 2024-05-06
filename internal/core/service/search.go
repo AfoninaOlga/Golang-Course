@@ -35,9 +35,7 @@ func (xs *XkcdService) dbSearch(keywords []string) map[int]int {
 func (xs *XkcdService) GetTopN(keywords []string, n int) []FoundComic {
 	found := make([]FoundComic, 0, xs.db.Size())
 	comics := xs.db.GetAll()
-	var counts map[int]int
-
-	counts = xs.indexSearch(keywords)
+	counts := xs.indexSearch(keywords)
 
 	for id, cnt := range counts {
 		found = append(found, FoundComic{Id: id, Count: cnt, Url: comics[id].Url})
