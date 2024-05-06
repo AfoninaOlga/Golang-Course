@@ -90,3 +90,43 @@ func worker(client port.Client, db port.ComicRepository, jobs <-chan int, wg *sy
 		}
 	}
 }
+
+func (xs *XkcdService) GetTopN(keywords []string, n int) []domain.FoundComic {
+	found := make([]domain.FoundComic, 0, xs.db.Size())
+	comics := xs.db.GetAll()
+	counts := xs.indexSearch(keywords)
+
+	for id, cnt := range counts {
+		found = append(found, domain.FoundComic{Id: id, Count: cnt, Url: comics[id].Url})
+	}
+
+	slices.SortFunc(found, func(a, b domain.FoundComic) int {
+		return b.Count - a.Count
+	})
+	if len(found) < n {
+		return found
+	}
+	return found[:n]
+}
+
+func (xs *XkcdService) indexSearch(keywords []string) map[int]int {
+	counts := make(map[int]int)
+	for _, k := range keywords {
+		for _, id := range xs.db.GetIndex()[k] {
+			counts[id]++
+		}
+	}
+	return counts
+}
+
+func (xs *XkcdService) dbSearch(keywords []string) map[int]int {
+	counts := make(map[int]int)
+	for _, k := range keywords {
+		for id, c := range xs.db.GetAll() {
+			if _, contains := slices.BinarySearch(c.Keywords, k); contains {
+				counts[id]++
+			}
+		}
+	}
+	return counts
+}

@@ -1,8 +1,8 @@
 package domain
 
 type Comic struct {
-	Url      string
-	Keywords []string
+	Url      string   `json:"url"`
+	Keywords []string `json:"keywords"`
 }
 
 type UrlComic struct {
@@ -11,4 +11,10 @@ type UrlComic struct {
 	Transcript string `json:"transcript"`
 	Alt        string `json:"alt"`
 	Title      string `json:"title"`
+}
+
+type FoundComic struct {
+	Id    int
+	Url   string
+	Count int
 }
