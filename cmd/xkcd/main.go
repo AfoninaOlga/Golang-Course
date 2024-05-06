@@ -2,23 +2,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/AfoninaOlga/xkcd/pkg/app"
-	"github.com/AfoninaOlga/xkcd/pkg/config"
-	"github.com/AfoninaOlga/xkcd/pkg/database"
-	"github.com/AfoninaOlga/xkcd/pkg/words"
-	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/json"
+	"github.com/AfoninaOlga/xkcd/internal/core/service"
 	"log"
 	"time"
 )
 
 func main() {
-	configPath, sQuery, useIndex := config.ParseFlag()
+	configPath, sQuery, useIndex := ParseFlag()
 
 	if sQuery == "" {
 		return
 	}
 
-	cfg, err := config.GetConfig(configPath)
+	cfg, err := GetConfig(configPath)
 	if err != nil {
 		log.Fatalf("Could not read config file. Error: %v\n", err)
 	}
@@ -29,19 +27,19 @@ func main() {
 		log.Println("Didn't find \"parallel\" in config file, setting number of goroutines to 1")
 	}
 
-	xkcdClient := xkcd.NewClient(cfg.Url, 10*time.Second, goCnt)
+	xkcdClient := client.NewClient(cfg.Url, 10*time.Second, goCnt)
 
 	// reading DB if exists
-	comicDB, err := database.New(cfg.DB)
+	comicDB, err := json.New(cfg.DB)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	a := app.New(comicDB, xkcdClient)
+	a := service.New(comicDB, xkcdClient)
 
 	a.LoadComics(goCnt)
 
-	stemmed, err := words.StemInput(sQuery)
+	stemmed, err := client.StemInput(sQuery)
 	if err != nil {
 		log.Println(err)
 	}

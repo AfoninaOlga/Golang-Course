@@ -1,10 +1,9 @@
-package app
+package service
 
 import (
 	"context"
-	"github.com/AfoninaOlga/xkcd/pkg/database"
-	"github.com/AfoninaOlga/xkcd/pkg/words"
-	"github.com/AfoninaOlga/xkcd/pkg/xkcd"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/json"
 	"log"
 	"os"
 	"os/signal"
@@ -13,11 +12,11 @@ import (
 )
 
 type App struct {
-	client *xkcd.Client
-	db     *database.JsonDatabase
+	client *client.Client
+	db     *json.JsonDatabase
 }
 
-func New(db *database.JsonDatabase, c *xkcd.Client) *App {
+func New(db *json.JsonDatabase, c *client.Client) *App {
 	return &App{client: c, db: db}
 }
 
@@ -57,7 +56,7 @@ LOOP:
 	}
 }
 
-func worker(client *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg *sync.WaitGroup) {
+func worker(client *client.Client, db *json.JsonDatabase, jobs <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for id := range jobs {
 		if db.Exists(id) {
@@ -76,7 +75,7 @@ func worker(client *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg 
 			continue
 		}
 
-		keywords, err := words.StemInput(comic.Alt + " " + comic.Transcript + " " + comic.Title)
+		keywords, err := client.StemInput(comic.Alt + " " + comic.Transcript + " " + comic.Title)
 
 		if err != nil {
 			log.Printf("Stemming error in comic #%v: %v", id, err)
@@ -84,7 +83,7 @@ func worker(client *xkcd.Client, db *database.JsonDatabase, jobs <-chan int, wg 
 
 		// sorting to use binary search in DBSearch
 		slices.Sort(keywords)
-		if err := db.AddComic(id, database.Comic{Url: comic.Url, Keywords: keywords}); err != nil {
+		if err := db.AddComic(id, json.Comic{Url: comic.Url, Keywords: keywords}); err != nil {
 			log.Println(err)
 		}
 	}

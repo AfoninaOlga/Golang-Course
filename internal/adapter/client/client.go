@@ -1,4 +1,4 @@
-package xkcd
+package client
 
 import (
 	"encoding/json"
