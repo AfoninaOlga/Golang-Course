@@ -10,7 +10,8 @@ type Config struct {
 	Url            string `yaml:"source_url"`
 	DB             string `yaml:"db_file"`
 	GoroutineCount int    `yaml:"parallel"`
-	port           int    `yaml:"port"`
+	Port           int    `yaml:"port"`
+	Time           string `yaml:"update_time"`
 }
 
 func GetConfig(path string) (c Config, err error) {
