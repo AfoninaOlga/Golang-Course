@@ -5,14 +5,16 @@ import (
 	"github.com/AfoninaOlga/xkcd/internal/core/port"
 	"log"
 	"net/http"
+	"sync"
 )
 
 type XkcdHandler struct {
 	svc port.ComicService
+	mtx *sync.Mutex
 }
 
 func NewXkcdHandler(svc port.ComicService) *XkcdHandler {
-	return &XkcdHandler{svc: svc}
+	return &XkcdHandler{svc: svc, mtx: &sync.Mutex{}}
 }
 
 func (xh *XkcdHandler) Search(w http.ResponseWriter, req *http.Request) {
@@ -32,15 +34,20 @@ func (xh *XkcdHandler) Search(w http.ResponseWriter, req *http.Request) {
 }
 
 func (xh *XkcdHandler) Update(w http.ResponseWriter, req *http.Request) {
-	added := xh.svc.LoadComics()
-	resp := struct {
-		Added int `json:"added"`
-	}{Added: added}
+	if xh.mtx.TryLock() {
+		added := xh.svc.LoadComics()
+		resp := struct {
+			Added int `json:"added"`
+		}{Added: added}
 
-	w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json")
 
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		log.Panic("Error encoding response:", err)
-		return
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			log.Panic("Error encoding response:", err)
+			return
+		}
+		xh.mtx.Unlock()
+	} else {
+		http.Error(w, "Update is already in progress", http.StatusServiceUnavailable)
 	}
 }
