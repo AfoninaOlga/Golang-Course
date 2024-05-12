@@ -27,8 +27,7 @@ func (xh *XkcdHandler) Search(w http.ResponseWriter, req *http.Request) {
 	comics := xh.svc.Search(text)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(comics); err != nil {
-		log.Println("Error encoding found URLs:", err)
-		http.Error(w, "Error encoding found URLs", http.StatusInternalServerError)
+		log.Panic("Error encoding found URLs:", err)
 	}
 }
 
@@ -41,8 +40,7 @@ func (xh *XkcdHandler) Update(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		log.Println("Error encoding response:", err)
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		log.Panic("Error encoding response:", err)
 		return
 	}
 }
