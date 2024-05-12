@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+
+qodana.yaml
+database.json
+index.json

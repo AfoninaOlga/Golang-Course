@@ -1,4 +1,4 @@
-package words
+package stemmer
 
 import (
 	"errors"
@@ -17,7 +17,7 @@ func checkWord(word string) error {
 	return nil
 }
 
-func StemInput(input string) ([]string, error) {
+func Stem(input string) ([]string, error) {
 	var result []string
 	var err error
 	stemmedWords := make(map[string]bool)

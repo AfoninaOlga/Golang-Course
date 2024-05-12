@@ -1,18 +1,14 @@
-package database
+package json
 
 import (
 	"encoding/json"
+	"github.com/AfoninaOlga/xkcd/internal/core/domain"
 	"os"
 	"sync"
 )
 
-type Comic struct {
-	Url      string   `json:"url"`
-	Keywords []string `json:"keywords"`
-}
-
 type JsonDatabase struct {
-	comics map[int]Comic
+	comics map[int]domain.Comic
 	path   string
 	maxId  int
 	mtx    *sync.Mutex
@@ -29,7 +25,7 @@ func New(path string) (*JsonDatabase, error) {
 
 func (jb *JsonDatabase) init(path string) error {
 	jb.path = path
-	jb.comics = make(map[int]Comic)
+	jb.comics = make(map[int]domain.Comic)
 	jb.index = make(map[string][]int)
 	jb.maxId = 0
 	jb.mtx = &sync.Mutex{}
@@ -89,7 +85,7 @@ func (jb *JsonDatabase) Flush() error {
 	return jb.flush()
 }
 
-func (jb *JsonDatabase) GetAll() map[int]Comic {
+func (jb *JsonDatabase) GetAll() map[int]domain.Comic {
 	return jb.comics
 }
 
@@ -97,7 +93,7 @@ func (jb *JsonDatabase) GetIndex() map[string][]int {
 	return jb.index
 }
 
-func (jb *JsonDatabase) addComic(id int, c Comic) error {
+func (jb *JsonDatabase) addComic(id int, c domain.Comic) error {
 	jb.comics[id] = c
 	for _, k := range c.Keywords {
 		jb.index[k] = append(jb.index[k], id)
@@ -113,7 +109,7 @@ func (jb *JsonDatabase) addComic(id int, c Comic) error {
 	return nil
 }
 
-func (jb *JsonDatabase) AddComic(id int, c Comic) error {
+func (jb *JsonDatabase) AddComic(id int, c domain.Comic) error {
 	jb.mtx.Lock()
 	defer jb.mtx.Unlock()
 	return jb.addComic(id, c)

@@ -1,3 +1,5 @@
 source_url: https://xkcd.com
 db_file: database.json
 parallel: 64
+update_time: "17:43"
+port: 8080
