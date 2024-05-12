@@ -50,31 +50,7 @@ func main() {
 	} else {
 		log.Printf("Loaded %v comics, database is up to date", cnt)
 	}
-
-	ticker := time.NewTicker(24 * time.Hour)
-	defer ticker.Stop()
-	timeFormat := "15:04"
-	updateTime, err := time.Parse(timeFormat, cfg.Time)
-	now := time.Now().Format(timeFormat)
-	curTime, _ := time.Parse(timeFormat, now)
-	if err != nil {
-		log.Println("Error parsing time from config file:", err)
-		updateTime = curTime
-	}
-
-	waitTime := updateTime.Sub(curTime)
-	if waitTime < 0 {
-		waitTime = updateTime.Sub(curTime.Add(-24 * time.Hour))
-	}
-	log.Println("Scheduled update at", updateTime.Format(timeFormat), "wait time:", waitTime)
-
-	go func() {
-		<-time.After(waitTime)
-		for ; ; <-ticker.C {
-			log.Println("Completed scheduled comics update")
-			xkcdService.LoadComics()
-		}
-	}()
+	xkcdService.SetUpdateTime(cfg.Time)
 
 	xkcdHandler := handler.NewXkcdHandler(xkcdService)
 	router := http.NewServeMux()

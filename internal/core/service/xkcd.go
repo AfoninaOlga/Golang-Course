@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"slices"
 	"sync"
+	"time"
 )
 
 type XkcdService struct {
@@ -59,6 +60,33 @@ LOOP:
 		log.Println(err)
 	}
 	return xs.db.Size() - size
+}
+
+func (xs *XkcdService) SetUpdateTime(uTime string) {
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	timeFormat := "15:04"
+	updateTime, err := time.Parse(timeFormat, uTime)
+	now := time.Now().Format(timeFormat)
+	curTime, _ := time.Parse(timeFormat, now)
+	if err != nil {
+		log.Println("Error parsing time from config file:", err)
+		updateTime = curTime
+	}
+
+	waitTime := updateTime.Sub(curTime)
+	if waitTime < 0 {
+		waitTime = updateTime.Sub(curTime.Add(-24 * time.Hour))
+	}
+	log.Println("Scheduled update at", updateTime.Format(timeFormat), "wait time:", waitTime)
+
+	go func() {
+		<-time.After(waitTime)
+		for ; ; <-ticker.C {
+			log.Println("Completed scheduled comics update")
+			xs.LoadComics()
+		}
+	}()
 }
 
 func (xs *XkcdService) Search(text string) []domain.FoundComic {
