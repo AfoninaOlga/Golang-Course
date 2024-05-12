@@ -67,17 +67,16 @@ func (xs *XkcdService) SetUpdateTime(uTime string) {
 	defer ticker.Stop()
 	timeFormat := "15:04"
 	updateTime, err := time.Parse(timeFormat, uTime)
-	now := time.Now().Format(timeFormat)
-	curTime, _ := time.Parse(timeFormat, now)
+	curTime, _ := time.Parse(timeFormat, time.Now().Format(timeFormat))
 	if err != nil {
-		log.Println("Error parsing time from config file:", err)
+		log.Println("Error parsing update time:", err)
 		updateTime = curTime
 	}
 
-	waitTime := updateTime.Sub(curTime)
-	if waitTime < 0 {
-		waitTime = updateTime.Sub(curTime.Add(-24 * time.Hour))
+	if updateTime.Before(curTime) {
+		updateTime = updateTime.Add(24 * time.Hour)
 	}
+	waitTime := updateTime.Sub(curTime)
 	log.Println("Scheduled update at", updateTime.Format(timeFormat), "wait time:", waitTime)
 
 	go func() {
