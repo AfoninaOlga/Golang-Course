@@ -35,7 +35,7 @@ func (xh *XkcdHandler) Search(w http.ResponseWriter, req *http.Request) {
 
 func (xh *XkcdHandler) Update(w http.ResponseWriter, req *http.Request) {
 	if xh.mtx.TryLock() {
-		added := xh.svc.LoadComics()
+		added := xh.svc.LoadComics(req.Context())
 		resp := struct {
 			Added int `json:"added"`
 		}{Added: added}

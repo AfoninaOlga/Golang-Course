@@ -1,6 +1,7 @@
 package port
 
 import (
+	"context"
 	"github.com/AfoninaOlga/xkcd/internal/core/domain"
 	"net/http"
 )
@@ -20,7 +21,7 @@ type ComicRepository interface {
 }
 
 type ComicService interface {
-	LoadComics() int
+	LoadComics(ctx context.Context) int
 	Search(string) []domain.FoundComic
 }
 
