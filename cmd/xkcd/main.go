@@ -1,17 +1,25 @@
 package main
 
 import (
+	"context"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/handler"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/json"
 	"github.com/AfoninaOlga/xkcd/internal/core/service"
+	"golang.org/x/sync/errgroup"
 	"log"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
 	"time"
 )
 
 func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
 	configPath, port := ParseFlag()
 
 	cfg, err := GetConfig(configPath)
@@ -45,12 +53,12 @@ func main() {
 
 	//Filling datbase before server start
 	xkcdService := service.New(comicDB, xkcdClient, 10, goCnt)
-	if cnt := xkcdService.LoadComics(); cnt == 0 {
+	if cnt := xkcdService.LoadComics(ctx); cnt == 0 {
 		log.Println("Nothing to load, database is up to date")
 	} else {
 		log.Printf("Loaded %v comics, database is up to date", cnt)
 	}
-	xkcdService.SetUpdateTime(cfg.Time)
+	xkcdService.SetUpdateTime(ctx, cfg.Time)
 
 	xkcdHandler := handler.NewXkcdHandler(xkcdService)
 	router := http.NewServeMux()
@@ -62,10 +70,18 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 20 * time.Second,
 		Handler:      router,
+		BaseContext:  func(net.Listener) context.Context { return ctx },
 	}
 
-	err = httpServer.ListenAndServe()
-	if err != nil {
-		log.Fatalln("Error starting server:", err)
+	g, gCtx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		return httpServer.ListenAndServe()
+	})
+	g.Go(func() error {
+		<-gCtx.Done()
+		return httpServer.Shutdown(context.Background())
+	})
+	if err := g.Wait(); err != nil {
+		log.Printf("exit reason: %s \n", err)
 	}
 }

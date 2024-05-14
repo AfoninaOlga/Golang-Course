@@ -24,7 +24,7 @@ func New(db port.ComicRepository, c port.Client, searchLimit int, goCnt int) *Xk
 	return &XkcdService{client: c, db: db, searchLimit: searchLimit, goCnt: goCnt}
 }
 
-func (xs *XkcdService) LoadComics() int {
+func (xs *XkcdService) LoadComics(ctx context.Context) int {
 	size := xs.db.Size()
 
 	curId := 1
@@ -34,7 +34,7 @@ func (xs *XkcdService) LoadComics() int {
 
 	jobs := make(chan int, xs.goCnt)
 	var wg sync.WaitGroup
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt)
+	loadCtx, cancelFunc := signal.NotifyContext(ctx, os.Interrupt)
 
 	for w := 1; w <= xs.goCnt; w++ {
 		wg.Add(1)
@@ -49,7 +49,7 @@ func (xs *XkcdService) LoadComics() int {
 LOOP:
 	for {
 		select {
-		case <-ctx.Done():
+		case <-loadCtx.Done():
 			close(jobs)
 			break LOOP
 		case jobs <- curId:
@@ -62,7 +62,7 @@ LOOP:
 	return xs.db.Size() - size
 }
 
-func (xs *XkcdService) SetUpdateTime(uTime string) {
+func (xs *XkcdService) SetUpdateTime(ctx context.Context, uTime string) {
 	ticker := time.NewTicker(24 * time.Hour)
 	defer ticker.Stop()
 	timeFormat := "15:04"
@@ -83,7 +83,7 @@ func (xs *XkcdService) SetUpdateTime(uTime string) {
 		<-time.After(waitTime)
 		for ; ; <-ticker.C {
 			log.Println("Completed scheduled comics update")
-			xs.LoadComics()
+			xs.LoadComics(ctx)
 		}
 	}()
 }
