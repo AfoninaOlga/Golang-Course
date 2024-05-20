@@ -25,11 +25,18 @@ func New(db port.ComicRepository, c port.Client, searchLimit int, goCnt int) *Xk
 }
 
 func (xs *XkcdService) LoadComics(ctx context.Context) int {
-	size := xs.db.Size(ctx)
+	size, err := xs.db.Size(ctx)
+	if err != nil {
+		log.Println("Error getting comic table size:", err)
+	}
+	maxId, err := xs.db.GetMaxId(ctx)
+	if err != nil {
+		log.Println("Error getting max id from comic table:", err)
+	}
 
 	curId := 1
-	if xs.db.GetMaxId(ctx)-1 == xs.db.Size(ctx) {
-		curId = xs.db.GetMaxId(ctx) + 1
+	if maxId-1 == size {
+		curId = maxId + 1
 	}
 
 	jobs := make(chan int, xs.goCnt)
@@ -56,7 +63,12 @@ LOOP:
 			curId++
 		}
 	}
-	return xs.db.Size(ctx) - size
+	newSize, err := xs.db.Size(ctx)
+	if err != nil {
+		log.Println("Error getting comic table new size:", err)
+		newSize = size
+	}
+	return newSize - size
 }
 
 func (xs *XkcdService) SetUpdateTime(ctx context.Context, uTime string) {
@@ -90,13 +102,22 @@ func (xs *XkcdService) Search(ctx context.Context, text string) []domain.FoundCo
 	if err != nil {
 		log.Println("Error stemming search query:", err)
 	}
-	return xs.GetTopN(ctx, keywords, xs.searchLimit)
+	res, err := xs.GetTopN(ctx, keywords, xs.searchLimit)
+	if err != nil {
+		log.Println("Error getting top N URL's:", err)
+		return nil
+	}
+	return res
 }
 
 func worker(ctx context.Context, client port.Client, db port.ComicRepository, jobs <-chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for id := range jobs {
-		if db.Exists(ctx, id) {
+		exists, err := db.Exists(ctx, id)
+		if err != nil {
+			log.Println("Error defining comic existence in database:", err)
+		}
+		if exists {
 			continue
 		}
 
@@ -127,10 +148,20 @@ func worker(ctx context.Context, client port.Client, db port.ComicRepository, jo
 	}
 }
 
-func (xs *XkcdService) GetTopN(ctx context.Context, keywords []string, n int) []domain.FoundComic {
-	found := make([]domain.FoundComic, 0, xs.db.Size(ctx))
-	comics := xs.db.GetAll(ctx)
-	counts := xs.indexSearch(ctx, keywords)
+func (xs *XkcdService) GetTopN(ctx context.Context, keywords []string, n int) ([]domain.FoundComic, error) {
+	size, err := xs.db.Size(ctx)
+	if err != nil {
+		return nil, err
+	}
+	found := make([]domain.FoundComic, 0, size)
+	comics, err := xs.db.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	counts, err := xs.indexSearch(ctx, keywords)
+	if err != nil {
+		return nil, err
+	}
 
 	for id, cnt := range counts {
 		found = append(found, domain.FoundComic{Id: id, Count: cnt, Url: comics[id].Url})
@@ -140,29 +171,21 @@ func (xs *XkcdService) GetTopN(ctx context.Context, keywords []string, n int) []
 		return b.Count - a.Count
 	})
 	if len(found) < n {
-		return found
+		return found, nil
 	}
-	return found[:n]
+	return found[:n], nil
 }
 
-func (xs *XkcdService) indexSearch(ctx context.Context, keywords []string) map[int]int {
+func (xs *XkcdService) indexSearch(ctx context.Context, keywords []string) (map[int]int, error) {
 	counts := make(map[int]int)
+	index, err := xs.db.GetIndex(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, k := range keywords {
-		for _, id := range xs.db.GetIndex(ctx)[k] {
+		for _, id := range index[k] {
 			counts[id]++
 		}
 	}
-	return counts
-}
-
-func (xs *XkcdService) dbSearch(ctx context.Context, keywords []string) map[int]int {
-	counts := make(map[int]int)
-	for _, k := range keywords {
-		for id, c := range xs.db.GetAll(ctx) {
-			if _, contains := slices.BinarySearch(c.Keywords, k); contains {
-				counts[id]++
-			}
-		}
-	}
-	return counts
+	return counts, nil
 }
