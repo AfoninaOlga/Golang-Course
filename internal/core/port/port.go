@@ -11,22 +11,17 @@ type Client interface {
 }
 
 type ComicRepository interface {
-	GetAll() map[int]domain.Comic
-	GetIndex() map[string][]int
-	GetMaxId() int
-	AddComic(id int, c domain.Comic) error
-	Exists(int) bool
-	Size() int
-	Flush() error
+	GetAll(context.Context) (map[int]domain.Comic, error)
+	GetIndex(context.Context) (map[string][]int, error)
+	GetMaxId(context.Context) (int, error)
+	AddComic(context.Context, int, domain.Comic) error
+	Exists(context.Context, int) (bool, error)
+	Size(ctx context.Context) (int, error)
 }
 
 type ComicService interface {
 	LoadComics(ctx context.Context) int
-	Search(string) []domain.FoundComic
-}
-
-type Stemmer interface {
-	Stem(string) ([]string, error)
+	Search(context.Context, string) []domain.FoundComic
 }
 
 type ComicHandler interface {
