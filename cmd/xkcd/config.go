@@ -12,6 +12,7 @@ type Config struct {
 	GoroutineCount int    `yaml:"parallel"`
 	Port           int    `yaml:"port"`
 	Time           string `yaml:"update_time"`
+	Database       string `yaml:"dsn"`
 }
 
 func GetConfig(path string) (c Config, err error) {
