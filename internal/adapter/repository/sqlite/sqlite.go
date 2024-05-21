@@ -30,10 +30,10 @@ func (cdb *ComicDB) GetAll(ctx context.Context) (map[int]domain.Comic, error) {
 			keywords []string
 			word     string
 		)
-		if err = comics.Scan(id, url); err != nil {
+		if err = comics.Scan(&id, &url); err != nil {
 			return nil, err
 		}
-		words, err := cdb.db.QueryContext(ctx, "select word from Indexes where id=? ", id)
+		words, err := cdb.db.QueryContext(ctx, "select keyword from Indexes where id=? ", id)
 		if err != nil {
 			return nil, err
 		}
@@ -50,8 +50,21 @@ func (cdb *ComicDB) GetAll(ctx context.Context) (map[int]domain.Comic, error) {
 	return comicMap, nil
 }
 
-func (cdb *ComicDB) GetIndex(ctx context.Context) (map[string][]int, error) {
-	return nil, nil
+func (cdb *ComicDB) GetIndex(ctx context.Context, keyword string) ([]int, error) {
+	var res []int
+	ids, err := cdb.db.QueryContext(ctx, "select id from Indexes where keyword=?", keyword)
+	if err != nil {
+		return nil, err
+	}
+	defer ids.Close()
+	for ids.Next() {
+		var id int
+		if err = ids.Scan(&id); err != nil {
+			return nil, err
+		}
+		res = append(res, id)
+	}
+	return res, nil
 }
 
 func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error {

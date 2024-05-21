@@ -12,7 +12,7 @@ type Client interface {
 
 type ComicRepository interface {
 	GetAll(context.Context) (map[int]domain.Comic, error)
-	GetIndex(context.Context) (map[string][]int, error)
+	GetIndex(context.Context, string) ([]int, error)
 	GetMaxId(context.Context) (int, error)
 	AddComic(context.Context, int, domain.Comic) error
 	Exists(context.Context, int) (bool, error)
