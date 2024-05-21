@@ -154,7 +154,7 @@ func (xs *XkcdService) GetTopN(ctx context.Context, keywords []string, n int) ([
 		return nil, err
 	}
 	found := make([]domain.FoundComic, 0, size)
-	comics, err := xs.db.GetAll(ctx)
+	urls, err := xs.db.GetUrls(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (xs *XkcdService) GetTopN(ctx context.Context, keywords []string, n int) ([
 	}
 
 	for id, cnt := range counts {
-		found = append(found, domain.FoundComic{Id: id, Count: cnt, Url: comics[id].Url})
+		found = append(found, domain.FoundComic{Id: id, Count: cnt, Url: urls[id]})
 	}
 
 	slices.SortFunc(found, func(a, b domain.FoundComic) int {

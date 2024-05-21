@@ -110,15 +110,13 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 		var kId int64
 		err = getKeyworId.QueryRow(word).Scan(&kId)
 		if errors.Is(err, sql.ErrNoRows) {
+			res, err := insertKeyword.Exec(word)
 			if err != nil {
-				res, err := insertKeyword.Exec(word)
-				if err != nil {
-					return err
-				}
-				kId, err = res.LastInsertId()
-				if err != nil {
-					return err
-				}
+				return err
+			}
+			kId, err = res.LastInsertId()
+			if err != nil {
+				return err
 			}
 		} else if err != nil {
 			return err
@@ -156,4 +154,24 @@ func (cdb *ComicDB) Size(ctx context.Context) (int, error) {
 	var sz int
 	err := cdb.db.QueryRowContext(ctx, "select count(*) from Comics").Scan(&sz)
 	return sz, err
+}
+
+func (cdb *ComicDB) GetUrls(ctx context.Context) (map[int]string, error) {
+	res := map[int]string{}
+	comics, err := cdb.db.QueryContext(ctx, "select id, url from Comics")
+	if err != nil {
+		return nil, err
+	}
+	defer comics.Close()
+	for comics.Next() {
+		var (
+			id  int
+			url string
+		)
+		if err = comics.Scan(&id, &url); err != nil {
+			return nil, err
+		}
+		res[id] = url
+	}
+	return res, nil
 }
