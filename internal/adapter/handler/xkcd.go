@@ -26,7 +26,7 @@ func (xh *XkcdHandler) Search(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	comics := xh.svc.Search(text)
+	comics := xh.svc.Search(req.Context(), text)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(comics); err != nil {
 		log.Panic("Error encoding found URLs:", err)
