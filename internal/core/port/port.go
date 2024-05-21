@@ -17,6 +17,7 @@ type ComicRepository interface {
 	AddComic(context.Context, int, domain.Comic) error
 	Exists(context.Context, int) (bool, error)
 	Size(context.Context) (int, error)
+	GetUrls(context.Context) (map[int]string, error)
 }
 
 type ComicService interface {
