@@ -16,7 +16,7 @@ type ComicRepository interface {
 	GetMaxId(context.Context) (int, error)
 	AddComic(context.Context, int, domain.Comic) error
 	Exists(context.Context, int) (bool, error)
-	Size(ctx context.Context) (int, error)
+	Size(context.Context) (int, error)
 }
 
 type ComicService interface {
