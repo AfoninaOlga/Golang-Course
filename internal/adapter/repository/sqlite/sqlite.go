@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"log"
 )
 
 type ComicDB struct {
@@ -58,7 +59,12 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		err = tx.Rollback()
+		if err != nil {
+			log.Println("unable to rollback:", err)
+		}
+	}()
 	insertComic, err := tx.Prepare("INSERT INTO Comics(id, url) VALUES (?, ?)")
 	if err != nil {
 		return err
@@ -103,6 +109,9 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 					return err
 				}
 				kId, err = res.LastInsertId()
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			return err
@@ -111,11 +120,9 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 		if err != nil {
 			return err
 		}
-		err = tx.Commit()
-		return err
 	}
-
-	return nil
+	err = tx.Commit()
+	return err
 }
 
 func (cdb *ComicDB) GetMaxId(ctx context.Context) (int, error) {
