@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/handler"
-	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/json"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/sqlite"
 	"github.com/AfoninaOlga/xkcd/internal/core/service"
+	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/sync/errgroup"
 	"log"
 	"net"
@@ -46,12 +48,18 @@ func main() {
 	xkcdClient := client.NewClient(cfg.Url, 10*time.Second, goCnt)
 
 	// reading DB if exists
-	comicDB, err := json.New(cfg.DB)
+	db, err := sql.Open("sqlite3", cfg.Database)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("error opening database:", err)
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Fatalln("error connecting to database:", err)
 	}
 
-	//Filling datbase before server start
+	comicDB := sqlite.New(db)
+	//Filling database before server start
 	xkcdService := service.New(comicDB, xkcdClient, 10, goCnt)
 	if cnt := xkcdService.LoadComics(ctx); cnt == 0 {
 		log.Println("Nothing to load, database is up to date")
