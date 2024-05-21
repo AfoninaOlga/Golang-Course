@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/AfoninaOlga/xkcd/internal/core/domain"
-	"log"
 )
 
 type ComicDB struct {
@@ -74,9 +73,9 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 	}
 	defer func() {
 		err = tx.Rollback()
-		if err != nil {
-			log.Println("unable to rollback:", err)
-		}
+		//if err != nil {
+		//	log.Println("unable to rollback:", err)
+		//}
 	}()
 	insertComic, err := tx.Prepare("INSERT INTO Comics(id, url) VALUES (?, ?)")
 	if err != nil {
@@ -110,12 +109,7 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 	for _, word := range c.Keywords {
 		var kId int64
 		err = getKeyworId.QueryRow(word).Scan(&kId)
-		if err == nil {
-			_, err = insertComicKeyword.Exec(id, kId)
-			if err != nil {
-				return err
-			}
-		} else if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			if err != nil {
 				res, err := insertKeyword.Exec(word)
 				if err != nil {
@@ -126,7 +120,7 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 					return err
 				}
 			}
-		} else {
+		} else if err != nil {
 			return err
 		}
 		_, err = insertComicKeyword.Exec(id, kId)
