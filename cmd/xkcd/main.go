@@ -62,7 +62,7 @@ func main() {
 		log.Fatalln("error connecting to database:", err)
 	}
 	if err = runMigration(db); err != nil {
-		log.Panic("error running migration:", err)
+		log.Fatalln("error running migration:", err)
 	}
 
 	comicDB := comics.New(db)
