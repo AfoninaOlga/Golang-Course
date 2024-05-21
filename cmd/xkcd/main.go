@@ -3,10 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/handler"
-	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/sqlite"
+	comics "github.com/AfoninaOlga/xkcd/internal/adapter/repository/sqlite"
 	"github.com/AfoninaOlga/xkcd/internal/core/service"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/sync/errgroup"
 	"log"
@@ -57,8 +61,11 @@ func main() {
 	if err != nil {
 		log.Fatalln("error connecting to database:", err)
 	}
+	if err = runMigration(db); err != nil {
+		log.Panic("error running migration:", err)
+	}
 
-	comicDB := sqlite.New(db)
+	comicDB := comics.New(db)
 	//Filling database before server start
 	xkcdService := service.New(comicDB, xkcdClient, 10, goCnt)
 	if cnt := xkcdService.LoadComics(ctx); cnt == 0 {
@@ -92,4 +99,22 @@ func main() {
 	if err := g.Wait(); err != nil {
 		log.Printf("exit reason: %s \n", err)
 	}
+}
+
+func runMigration(db *sql.DB) error {
+	d, err := sqlite.WithInstance(db, &sqlite.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations", "sqlite3", d)
+	if err != nil {
+		return err
+	}
+
+	if err := m.Up(); err == nil || errors.Is(err, migrate.ErrNoChange) {
+		return nil
+	}
+
+	return err
 }

@@ -1,6 +1,6 @@
 source_url: https://xkcd.com
 db_file: database.json
-parallel: 64
+parallel: 8
 update_time: "17:43"
 port: 8080
 dsn: "file:./xkcd.db?mode=rwc"
