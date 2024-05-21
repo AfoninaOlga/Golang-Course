@@ -178,12 +178,12 @@ func (xs *XkcdService) GetTopN(ctx context.Context, keywords []string, n int) ([
 
 func (xs *XkcdService) indexSearch(ctx context.Context, keywords []string) (map[int]int, error) {
 	counts := make(map[int]int)
-	index, err := xs.db.GetIndex(ctx)
-	if err != nil {
-		return nil, err
-	}
 	for _, k := range keywords {
-		for _, id := range index[k] {
+		index, err := xs.db.GetIndex(ctx, k)
+		if err != nil {
+			return nil, err
+		}
+		for _, id := range index {
 			counts[id]++
 		}
 	}
