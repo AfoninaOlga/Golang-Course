@@ -72,10 +72,7 @@ func (cdb *ComicDB) AddComic(ctx context.Context, id int, c domain.Comic) error 
 		return err
 	}
 	defer func() {
-		err = tx.Rollback()
-		//if err != nil {
-		//	log.Println("unable to rollback:", err)
-		//}
+		_ = tx.Rollback()
 	}()
 	insertComic, err := tx.Prepare("INSERT INTO Comics(id, url) VALUES (?, ?)")
 	if err != nil {
