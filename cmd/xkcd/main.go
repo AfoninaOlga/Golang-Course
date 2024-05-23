@@ -107,7 +107,7 @@ func runMigration(db *sql.DB) error {
 		return err
 	}
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations", "sqlite3", d)
+		"file://internal/adapter/repository/sqlite/migrations", "sqlite3", d)
 	if err != nil {
 		return err
 	}
