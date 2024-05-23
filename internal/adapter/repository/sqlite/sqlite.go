@@ -5,6 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type ComicDB struct {
@@ -171,4 +175,22 @@ func (cdb *ComicDB) GetUrls(ctx context.Context) (map[int]string, error) {
 		res[id] = url
 	}
 	return res, nil
+}
+
+func (cdb *ComicDB) RunMigrationUp() error {
+	d, err := sqlite.WithInstance(cdb.db, &sqlite.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://internal/adapter/repository/sqlite/migrations", "sqlite3", d)
+	if err != nil {
+		return err
+	}
+
+	if err := m.Up(); err == nil || errors.Is(err, migrate.ErrNoChange) {
+		return nil
+	}
+
+	return err
 }
