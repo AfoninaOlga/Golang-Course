@@ -18,6 +18,7 @@ type ComicRepository interface {
 	Exists(context.Context, int) (bool, error)
 	Size(context.Context) (int, error)
 	GetUrls(context.Context) (map[int]string, error)
+	RunMigrationUp() error
 }
 
 type ComicService interface {
