@@ -48,7 +48,13 @@ func (cdb *ComicDB) GetAll(ctx context.Context) (map[int]domain.Comic, error) {
 			}
 			keywords = append(keywords, word)
 		}
+		if err := words.Err(); err != nil {
+			return nil, err
+		}
 		comicMap[id] = domain.Comic{Url: url, Keywords: keywords}
+	}
+	if err := comics.Err(); err != nil {
+		return nil, err
 	}
 	return comicMap, nil
 }
@@ -66,6 +72,9 @@ func (cdb *ComicDB) GetIndex(ctx context.Context, keyword string) ([]int, error)
 			return nil, err
 		}
 		res = append(res, id)
+	}
+	if err := ids.Err(); err != nil {
+		return nil, err
 	}
 	return res, nil
 }
@@ -173,6 +182,9 @@ func (cdb *ComicDB) GetUrls(ctx context.Context) (map[int]string, error) {
 			return nil, err
 		}
 		res[id] = url
+	}
+	if err := comics.Err(); err != nil {
+		return nil, err
 	}
 	return res, nil
 }
