@@ -35,6 +35,7 @@ func (xh *XkcdHandler) Search(w http.ResponseWriter, req *http.Request) {
 
 func (xh *XkcdHandler) Update(w http.ResponseWriter, req *http.Request) {
 	if xh.mtx.TryLock() {
+		defer xh.mtx.Unlock()
 		added := xh.svc.LoadComics(req.Context())
 		resp := struct {
 			Added int `json:"added"`
@@ -46,7 +47,6 @@ func (xh *XkcdHandler) Update(w http.ResponseWriter, req *http.Request) {
 			log.Panic("Error encoding response:", err)
 			return
 		}
-		xh.mtx.Unlock()
 	} else {
 		http.Error(w, "Update is already in progress", http.StatusServiceUnavailable)
 	}
