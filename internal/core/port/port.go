@@ -21,6 +21,11 @@ type ComicRepository interface {
 	RunMigrationUp() error
 }
 
+type UserRepository interface {
+	Add(context.Context, domain.User) error
+	GetByName(context.Context, string) (*domain.User, error)
+}
+
 type ComicService interface {
 	LoadComics(ctx context.Context) int
 	Search(context.Context, string) []domain.FoundComic

@@ -18,3 +18,9 @@ type FoundComic struct {
 	Url   string `json:"url"`
 	Count int    `json:"-"`
 }
+
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	IsAdmin  bool   `json:"-"`
+}
