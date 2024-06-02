@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/client"
 	"github.com/AfoninaOlga/xkcd/internal/adapter/handler"
-	comics "github.com/AfoninaOlga/xkcd/internal/adapter/repository/sqlite"
+	"github.com/AfoninaOlga/xkcd/internal/adapter/repository/sqlite"
 	"github.com/AfoninaOlga/xkcd/internal/core/service"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/mattn/go-sqlite3"
@@ -60,13 +60,15 @@ func main() {
 	}
 
 	// Trying to run migrations
-	comicDB := comics.New(db)
+	comicDB := sqlite.New(db)
+	userDB := sqlite.NewUserDB(db)
 	if err = comicDB.RunMigrationUp(); err != nil {
 		log.Fatalln("error running migration:", err)
 	}
 
 	//Filling database before server start
 	xkcdService := service.New(comicDB, xkcdClient, 10, goCnt)
+	authService := service.NewAuthService(userDB, "quokka", time.Minute*10)
 	if cnt := xkcdService.LoadComics(ctx); cnt == 0 {
 		log.Println("Nothing to load, database is up to date")
 	} else {
@@ -75,9 +77,12 @@ func main() {
 	xkcdService.SetUpdateTime(ctx, cfg.Time)
 
 	xkcdHandler := handler.NewXkcdHandler(xkcdService)
+	authHandler := handler.NewAuthHandler(authService)
 	router := http.NewServeMux()
-	router.HandleFunc("POST /update", xkcdHandler.Update)
-	router.HandleFunc("GET /pics", xkcdHandler.Search)
+	router.HandleFunc("POST /update", handler.Auth(true, authService, xkcdHandler.Update))
+	router.HandleFunc("GET /pics", handler.Auth(false, authService, xkcdHandler.Search))
+	router.HandleFunc("POST /login", authHandler.Login)
+	router.HandleFunc("POST /register", authHandler.Register)
 
 	httpServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(port),
