@@ -31,6 +31,12 @@ type ComicService interface {
 	Search(context.Context, string) []domain.FoundComic
 }
 
+type AuthService interface {
+	Login(context.Context, domain.User) (string, error)
+	Register(context.Context, domain.User) (bool, error)
+	GetUserByToken(context.Context, string) (*domain.User, error)
+}
+
 type ComicHandler interface {
 	Search(http.ResponseWriter, *http.Request)
 	Update(http.ResponseWriter, *http.Request)
