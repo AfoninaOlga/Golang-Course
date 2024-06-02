@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+type ctxKey string
+
 func Auth(adminRequired bool, authService port.AuthService, next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		user, err := authService.GetUserByToken(req.Context(), req.Header.Get("Authorization"))
@@ -23,7 +25,7 @@ func Auth(adminRequired bool, authService port.AuthService, next http.HandlerFun
 				return
 			}
 		}
-		ctx := context.WithValue(req.Context(), "user", user)
+		ctx := context.WithValue(req.Context(), ctxKey("user"), user)
 		next(w, req.WithContext(ctx))
 	})
 }
