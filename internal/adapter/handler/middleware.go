@@ -13,8 +13,8 @@ func Auth(adminRequired bool, authService port.AuthService, next http.HandlerFun
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		user, err := authService.GetUserByToken(req.Context(), req.Header.Get("Authorization"))
 		if err != nil {
-			log.Printf("authentification error: %v\n", err)
-			http.Error(w, "Authentification error", http.StatusUnauthorized)
+			log.Printf("authentication error: %v\n", err)
+			http.Error(w, "Authentication error", http.StatusUnauthorized)
 			return
 		}
 
