@@ -20,7 +20,7 @@ type XkcdService struct {
 	goCnt       int
 }
 
-func New(db port.ComicRepository, c port.Client, searchLimit int, goCnt int) *XkcdService {
+func NewXkcdService(db port.ComicRepository, c port.Client, searchLimit int, goCnt int) *XkcdService {
 	return &XkcdService{client: c, db: db, searchLimit: searchLimit, goCnt: goCnt}
 }
 
