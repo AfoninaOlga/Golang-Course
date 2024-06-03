@@ -15,7 +15,7 @@ type ComicDB struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *ComicDB {
+func NewComicDB(db *sql.DB) *ComicDB {
 	return &ComicDB{db: db}
 }
 

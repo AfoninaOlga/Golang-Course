@@ -60,7 +60,7 @@ func main() {
 	}
 
 	// Trying to run migrations
-	comicDB := sqlite.New(db)
+	comicDB := sqlite.NewComicDB(db)
 	userDB := sqlite.NewUserDB(db)
 	if err = comicDB.RunMigrationUp(); err != nil {
 		log.Fatalln("error running migration:", err)
