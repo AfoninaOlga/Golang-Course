@@ -4,3 +4,5 @@ parallel: 8
 update_time: "17:43"
 port: 8080
 dsn: "file:./xkcd.db?mode=rwc"
+concurrency_limit: 100
+rate_limit: 10

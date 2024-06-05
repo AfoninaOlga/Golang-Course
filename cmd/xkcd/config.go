@@ -7,12 +7,15 @@ import (
 )
 
 type Config struct {
-	Url            string `yaml:"source_url"`
-	DB             string `yaml:"db_file"`
-	GoroutineCount int    `yaml:"parallel"`
-	Port           int    `yaml:"port"`
-	Time           string `yaml:"update_time"`
-	Database       string `yaml:"dsn"`
+	Url              string `yaml:"source_url"`
+	DB               string `yaml:"db_file"`
+	GoroutineCount   int    `yaml:"parallel"`
+	Port             int    `yaml:"port"`
+	Time             string `yaml:"update_time"`
+	Database         string `yaml:"dsn"`
+	ConcurrencyLimit int    `yaml:"concurrency_limit"`
+	RateLimit        int    `yaml:"rate_limit"`
+	TokenDuration    int    `yaml:"token_duration"`
 }
 
 func GetConfig(path string) (c Config, err error) {
