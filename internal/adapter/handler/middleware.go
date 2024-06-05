@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/AfoninaOlga/xkcd/internal/core/port"
 	"log"
+	"net"
 	"net/http"
 )
 
@@ -27,5 +28,38 @@ func Auth(adminRequired bool, authService port.AuthService, next http.HandlerFun
 		}
 		ctx := context.WithValue(req.Context(), ctxKey("user"), user)
 		next(w, req.WithContext(ctx))
+	})
+}
+
+func RateLimiting(limiter *RateLimiter, next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		var (
+			err    error
+			client string
+		)
+		user := req.Context().Value("user")
+		if user == nil {
+			client, _, err = net.SplitHostPort(req.RemoteAddr)
+			if err != nil {
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			client = user.(string)
+		}
+
+		if limiter.Allow(client) {
+			next(w, req)
+		} else {
+			http.Error(w, "Too many requests", http.StatusTooManyRequests)
+		}
+	})
+}
+
+func ConcurrencyLimiting(limiter *ConcurrencyLimiter, next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		limiter.Add()
+		defer limiter.Remove()
+		next(w, req)
 	})
 }
