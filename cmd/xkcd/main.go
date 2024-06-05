@@ -46,6 +46,17 @@ func main() {
 		log.Println("Didn't find \"parallel\" in config file, setting number of goroutines to 1")
 	}
 
+	rl := cfg.RateLimit
+	if rl <= 0 {
+		rl = 10
+	}
+	rateLimiter := handler.NewRateLimiter(ctx, rl, 5*time.Minute)
+	cl := cfg.ConcurrencyLimit
+	if cl <= 0 {
+		cl = 10
+	}
+	concurrencyLimiter := handler.NewConcurrencyLimiter(cl)
+
 	xkcdClient := client.NewClient(cfg.Url, 10*time.Second, goCnt)
 
 	// Trying to connect to database
@@ -79,16 +90,16 @@ func main() {
 	xkcdHandler := handler.NewXkcdHandler(xkcdService)
 	authHandler := handler.NewAuthHandler(authService)
 	router := http.NewServeMux()
-	router.HandleFunc("POST /update", handler.Auth(true, authService, xkcdHandler.Update))
-	router.HandleFunc("GET /pics", handler.Auth(false, authService, xkcdHandler.Search))
-	router.HandleFunc("POST /login", authHandler.Login)
-	router.HandleFunc("POST /register", authHandler.Register)
+	router.HandleFunc("POST /update", handler.Auth(true, authService, handler.RateLimiting(rateLimiter, xkcdHandler.Update)))
+	router.HandleFunc("GET /pics", handler.Auth(false, authService, handler.RateLimiting(rateLimiter, xkcdHandler.Search)))
+	router.HandleFunc("POST /login", handler.RateLimiting(rateLimiter, authHandler.Login))
+	router.HandleFunc("POST /register", handler.RateLimiting(rateLimiter, authHandler.Register))
 
 	httpServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(port),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 20 * time.Second,
-		Handler:      router,
+		Handler:      handler.ConcurrencyLimiting(concurrencyLimiter, router.ServeHTTP),
 		BaseContext:  func(net.Listener) context.Context { return ctx },
 	}
 
