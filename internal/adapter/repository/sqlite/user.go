@@ -17,29 +17,12 @@ func NewUserDB(db *sql.DB) *UserDB {
 }
 
 func (udb *UserDB) Add(ctx context.Context, u domain.User) error {
-	var admin int
+	var isAdmin int
 	if u.IsAdmin {
-		admin = 1
+		isAdmin = 1
 	}
-	tx, err := udb.db.BeginTx(ctx, nil)
+	_, err := udb.db.ExecContext(ctx, "INSERT INTO Users(name, password, is_admin) VALUES (?, ?, ?)", u.Name, u.Password, isAdmin)
 	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	insertComic, err := tx.Prepare("INSERT INTO Users(name, password, is_admin) VALUES (?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	defer insertComic.Close()
-	_, err = insertComic.Exec(u.Name, u.Password, admin)
-	if err != nil {
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
 		return err
 	}
 
