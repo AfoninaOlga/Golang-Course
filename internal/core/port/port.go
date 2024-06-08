@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+//go:generate mockery --all
+
 type Client interface {
 	GetComic(int) (domain.UrlComic, error)
 }
