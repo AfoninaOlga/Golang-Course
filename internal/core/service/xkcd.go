@@ -35,8 +35,15 @@ func (xs *XkcdService) LoadComics(ctx context.Context) int {
 	}
 
 	curId := 1
-	if maxId-1 == size {
-		curId = maxId + 1
+
+	if maxId > 403 {
+		if maxId-1 == size {
+			curId = maxId + 1
+		}
+	} else {
+		if maxId == size {
+			curId = maxId + 1
+		}
 	}
 
 	jobs := make(chan int, xs.goCnt)
