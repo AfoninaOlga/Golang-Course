@@ -28,7 +28,6 @@ func TestCheckWord(t *testing.T) {
 }
 
 func TestStem(t *testing.T) {
-	var nilRes []string
 	testTable := []struct {
 		text        string
 		expectedRes []string
@@ -46,7 +45,7 @@ func TestStem(t *testing.T) {
 		},
 		{
 			text:        "",
-			expectedRes: nilRes,
+			expectedRes: nil,
 			expectedErr: nil,
 		},
 	}
