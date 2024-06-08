@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/AfoninaOlga/xkcd/internal/core/domain"
 	"github.com/AfoninaOlga/xkcd/internal/core/port"
 	"log"
 	"net"
@@ -37,7 +38,7 @@ func RateLimiting(limiter *RateLimiter, next http.HandlerFunc) http.HandlerFunc 
 			err    error
 			client string
 		)
-		user := req.Context().Value("user")
+		user := req.Context().Value(ctxKey("user"))
 		if user == nil {
 			client, _, err = net.SplitHostPort(req.RemoteAddr)
 			if err != nil {
@@ -45,7 +46,7 @@ func RateLimiting(limiter *RateLimiter, next http.HandlerFunc) http.HandlerFunc 
 				return
 			}
 		} else {
-			client = user.(string)
+			client = (user.(domain.User)).Name
 		}
 
 		if limiter.Allow(client) {
