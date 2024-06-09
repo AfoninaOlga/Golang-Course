@@ -7,6 +7,17 @@ build: deps
 deps:
 	go mod tidy
 
+test:
+	go test -race -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+
+lint:
+	golangci-lint run -v
+
+sec:
+	trivy fs .
+	govulncheck ./...
+
 clean:
 	rm $(TARGET)
 
