@@ -35,9 +35,13 @@ func TestRateLimiter_deleteExpired(t *testing.T) {
 	limiter := NewRateLimiter(ctx, 1, time.Second/8)
 	limiter.Allow("user")
 	time.Sleep(time.Second / 10)
+	limiter.mtx.Lock()
 	assert.Contains(t, limiter.clientMap, "user")
+	limiter.mtx.Unlock()
 	time.Sleep(time.Second / 10)
+	limiter.mtx.Lock()
 	assert.NotContains(t, limiter.clientMap, "user")
+	limiter.mtx.Unlock()
 	cancel()
 }
 
