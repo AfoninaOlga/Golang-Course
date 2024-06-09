@@ -94,7 +94,7 @@ func TestRateLimiting_ContextUser(t *testing.T) {
 	limiter := NewRateLimiter(context.Background(), 1, time.Minute)
 	handler := RateLimiting(limiter, http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {}))
 	req, err := http.NewRequest("GET", "/", nil)
-	ctx := context.WithValue(context.Background(), ctxKey("user"), domain.User{Name: "user"})
+	ctx := context.WithValue(context.Background(), ctxKey("user"), &domain.User{Name: "user"})
 	assert.NoError(t, err)
 	recorder := httptest.NewRecorder()
 	handler(recorder, req.WithContext(ctx))
