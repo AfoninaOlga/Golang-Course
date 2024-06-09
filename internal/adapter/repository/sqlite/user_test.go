@@ -33,7 +33,7 @@ func TestUserDB_Add_Error(t *testing.T) {
 	uRepo := NewUserDB(db)
 	mock.ExpectExec("INSERT INTO Users").WithArgs(user.Name, user.Password, 0).WillReturnError(resErr)
 	err = uRepo.Add(context.Background(), user)
-	assert.Error(t, err, resErr)
+	assert.Equal(t, resErr, err)
 	err = mock.ExpectationsWereMet()
 	assert.NoError(t, err)
 }
@@ -62,7 +62,7 @@ func TestUserDB_GetByName_Error(t *testing.T) {
 
 	mock.ExpectQuery("select password, is_admin from Users where name=").WithArgs(user.Name).WillReturnError(resErr)
 	u, err := uRepo.GetByName(context.Background(), user.Name)
-	assert.Error(t, err, resErr)
+	assert.Equal(t, resErr, err)
 	err = mock.ExpectationsWereMet()
 	assert.NoError(t, err)
 	assert.Nil(t, u)
