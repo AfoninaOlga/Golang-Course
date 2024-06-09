@@ -46,7 +46,7 @@ func RateLimiting(limiter *RateLimiter, next http.HandlerFunc) http.HandlerFunc 
 				return
 			}
 		} else {
-			client = (user.(domain.User)).Name
+			client = (user.(*domain.User)).Name
 		}
 
 		if limiter.Allow(client) {
