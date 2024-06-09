@@ -44,7 +44,3 @@ func TestRateLimiter_deleteExpired(t *testing.T) {
 	limiter.mtx.Unlock()
 	cancel()
 }
-
-func TestRateLimiter_Allow2(t *testing.T) {
-
-}
