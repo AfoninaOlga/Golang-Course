@@ -2,13 +2,13 @@
 
 if ! command -v curl &> /dev/null
 then
-    echo "Could not run script cause cURL command not found"
+    echo -e "Could not run script cause cURL command not found.\nInstall curl to run this script."
     exit 1
 fi;
 
 if ! command -v jq &> /dev/null
 then
-    echo "Could not run script cause jq command not found"
+    echo -e "Could not run script cause jq command not found.\nInstall curl to run this script."
     exit 1
 fi;
 
@@ -16,25 +16,27 @@ fi;
 make;
 
 # start server
+echo "Building server...";
 ./xkcd-server -p 8080 &> /dev/null &
 
 sleep 5;
 # login
-echo "token requested";
+echo "Requesting token...";
 token=$(curl -s --request POST \
       --data '{"name": "admin", "password": "admin"}'\
       localhost:8080/login \
       | jq -r '.token');
-echo "got token: '$token'";
+echo "> Got token: $token";
 
 # update database
-echo "update requested";
-curl -s --request POST \
+echo "Requesting update...";
+added=$(curl -s --request POST \
       -H "Authorization: $token" \
-      localhost:8080/update;
+      localhost:8080/update);
+echo "> Update response: $added"
 
 # search pics
-echo "pics requested";
+echo "Requesting pics...";
 response=$(curl -s --request GET \
            -H "Authorization: $token" \
            localhost:8080/pics?search="apple,doctor");
@@ -42,10 +44,9 @@ response=$(curl -s --request GET \
 # check comic presence
 comic="https://imgs.xkcd.com/comics/an_apple_a_day.png";
 if [[ $response == *"comic"* ]]; then
-    echo "'$comic' found"
+    echo "SUCCESS: '$comic' is found."
 else
-    echo "'$comic' not found in response:"
-    echo "$response"
+    echo -e "FAIL: '$comic' not found in response:\n'$response'"
 fi;
 
 kill %1;
