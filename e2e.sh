@@ -43,7 +43,7 @@ response=$(curl -s --request GET \
 
 # check comic presence
 comic="https://imgs.xkcd.com/comics/an_apple_a_day.png";
-if [[ $response == *"comic"* ]]; then
+if [[ $response == *"$comic"* ]]; then
     echo "SUCCESS: '$comic' is found."
 else
     echo -e "FAIL: '$comic' not found in response:\n'$response'"
