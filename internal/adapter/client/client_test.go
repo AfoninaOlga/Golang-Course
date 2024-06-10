@@ -50,8 +50,7 @@ func newTestServerError() *httptest.Server {
 
 func TestClient_GetComic(t *testing.T) {
 	server := newTestServer()
-	clnt := NewClient(server.URL, time.Minute, 10)
-	clnt.client = *server.Client()
+	client := NewClient(server.URL, time.Minute, 10)
 	testTable := []struct {
 		id          int
 		expectedRes domain.UrlComic
@@ -74,35 +73,31 @@ func TestClient_GetComic(t *testing.T) {
 		},
 	}
 	for _, testCase := range testTable {
-		c, err := clnt.GetComic(testCase.id)
+		c, err := client.GetComic(testCase.id)
 		assert.Equal(t, testCase.expectedRes, c)
 		assert.Equal(t, testCase.expectedErr, err)
 	}
 }
 
 func TestClient_GetComic_Error(t *testing.T) {
-	server := newTestServer()
-	clnt := NewClient("", time.Minute, 10)
-	clnt.client = *server.Client()
-	c, err := clnt.GetComic(1)
+	client := NewClient("", time.Minute, 10)
+	c, err := client.GetComic(1)
 	assert.Equal(t, domain.UrlComic{}, c)
 	assert.Error(t, err)
 }
 
 func TestClient_GetComicsCount(t *testing.T) {
 	server := newTestServer()
-	clnt := NewClient(server.URL, time.Minute, 10)
-	clnt.client = *server.Client()
-	res, err := clnt.GetComicsCount()
+	client := NewClient(server.URL, time.Minute, 10)
+	res, err := client.GetComicsCount()
 	assert.NoError(t, err)
 	assert.Equal(t, 3000, res)
 }
 
 func TestClient_GetComicsCount_Error(t *testing.T) {
 	server := newTestServerError()
-	clnt := NewClient(server.URL, time.Minute, 10)
-	clnt.client = *server.Client()
-	res, err := clnt.GetComicsCount()
+	client := NewClient(server.URL, time.Minute, 10)
+	res, err := client.GetComicsCount()
 	assert.Error(t, err)
 	assert.Equal(t, 0, res)
 }
