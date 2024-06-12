@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/domain"
 	_ "github.com/mattn/go-sqlite3"
 )
 

@@ -3,7 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/domain"
 	"net/http"
 	"strconv"
 	"time"

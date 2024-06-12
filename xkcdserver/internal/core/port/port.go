@@ -2,7 +2,7 @@ package port
 
 import (
 	"context"
-	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/domain"
 	"net/http"
 )
 

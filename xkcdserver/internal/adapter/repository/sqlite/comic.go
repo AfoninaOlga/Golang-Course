@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/AfoninaOlga/xkcd/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/domain"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"

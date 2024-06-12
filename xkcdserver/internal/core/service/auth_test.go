@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/AfoninaOlga/xkcd/internal/core/domain"
-	"github.com/AfoninaOlga/xkcd/internal/core/port/mocks"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/port/mocks"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

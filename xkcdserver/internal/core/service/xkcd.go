@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/AfoninaOlga/xkcd/internal/adapter/stemmer"
-	"github.com/AfoninaOlga/xkcd/internal/core/domain"
-	"github.com/AfoninaOlga/xkcd/internal/core/port"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/adapter/stemmer"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/port"
 	"log"
 	"os"
 	"os/signal"

@@ -1,4 +1,4 @@
-srcdir=./cmd/xkcd
+srcdir=./xkcdserver/cmd/xkcd
 TARGET=xkcd-server
 
 build: deps
@@ -8,7 +8,7 @@ deps:
 	@go mod tidy
 
 test:
-	@go test -race -coverprofile=coverage.out ./...
+	@go test -race -coverprofile=coverage.out ./xkcdserver/...
 	@go tool cover -html=coverage.out -o coverage.html
 
 lint:
