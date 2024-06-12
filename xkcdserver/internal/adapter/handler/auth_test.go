@@ -3,7 +3,7 @@ package handler
 import (
 	"bytes"
 	"fmt"
-	"github.com/AfoninaOlga/xkcd/internal/core/port/mocks"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/port/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io"

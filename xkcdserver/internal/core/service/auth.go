@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/AfoninaOlga/xkcd/internal/core/domain"
-	"github.com/AfoninaOlga/xkcd/internal/core/port"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/domain"
+	"github.com/AfoninaOlga/xkcd/xkcdserver/internal/core/port"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"time"
