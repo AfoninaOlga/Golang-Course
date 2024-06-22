@@ -1,8 +1,15 @@
-srcdir=./xkcdserver/cmd/xkcd
-TARGET=xkcd-server
+xkcddir=./xkcdserver/cmd/xkcd
+webdir=./webserver/cmd
+XKCDTARGET=xkcd-server
+WEBTARGET=web-server
 
-build: deps
-	@go build -o $(TARGET) $(srcdir)
+all: webserver xkcdserver
+
+webserver: deps
+	@go build -o $(WEBTARGET) $(webdir)
+
+xkcdserver: deps
+	@go build -o $(XKCDTARGET) $(xkcddir)
 
 deps:
 	@go mod tidy
