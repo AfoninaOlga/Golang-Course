@@ -26,7 +26,7 @@ func main() {
 		port = cfg.Port
 		// if there's no field "port" in config
 		if port == 0 {
-			port = 8080
+			port = 8081
 		}
 	}
 
