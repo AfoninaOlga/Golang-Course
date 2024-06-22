@@ -21,6 +21,17 @@ func main() {
 		log.Fatalf("Could not read config file. Error: %v\n", err)
 	}
 
+	// if port flag wasn't set
+	if port == -1 {
+		port = cfg.Port
+		// if there's no field "port" in config
+		if port == 0 {
+			port = 8080
+		}
+	}
+
+	log.Println("xkcd server will listening on", port)
+
 	ttl := cfg.TokenDuration
 	if ttl == 0 {
 		ttl = 10
