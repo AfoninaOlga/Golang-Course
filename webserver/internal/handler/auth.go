@@ -30,6 +30,13 @@ func NewHandler(apiUrl string, ttl time.Duration) *Handler {
 	return &Handler{ttl: ttl, apiUrl: apiUrl, client: http.Client{Timeout: 5 * time.Second}}
 }
 
+func (h *Handler) executeTemplate(w http.ResponseWriter, tmpl *template.Template, data any) {
+	err := tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
 func (h *Handler) Login(w http.ResponseWriter, req *http.Request) {
 	var data struct {
 		ErrMessage string
@@ -40,7 +47,7 @@ func (h *Handler) Login(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 	if req.Method == http.MethodGet {
-		tmpl.Execute(w, data)
+		h.executeTemplate(w, tmpl, data)
 		return
 	}
 
@@ -49,7 +56,7 @@ func (h *Handler) Login(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Println("error parsing login form:", err)
 			data.ErrMessage = "Invalid input data. Try again."
-			tmpl.Execute(w, data)
+			h.executeTemplate(w, tmpl, data)
 			return
 		}
 
@@ -59,9 +66,9 @@ func (h *Handler) Login(w http.ResponseWriter, req *http.Request) {
 
 		resp, err := http.Post(h.apiUrl+"/login", "application/json", bytes.NewBuffer(user))
 		if err != nil {
-			log.Printf("error getting token: %w", err)
+			log.Println("error getting token:", err)
 			data.ErrMessage = "Incorrect username or password. Try again."
-			tmpl.Execute(w, data)
+			h.executeTemplate(w, tmpl, data)
 			return
 		}
 
@@ -74,7 +81,7 @@ func (h *Handler) Login(w http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				log.Printf("error decoding token: %v\n", err)
 				data.ErrMessage = "Incorrect input data. Try again."
-				tmpl.Execute(w, data)
+				h.executeTemplate(w, tmpl, data)
 				return
 			}
 			cookie := http.Cookie{
@@ -93,8 +100,9 @@ func (h *Handler) Login(w http.ResponseWriter, req *http.Request) {
 			if resp.StatusCode >= 500 {
 				data.ErrMessage = "Internal error. Try again."
 			}
-			tmpl.Execute(w, data)
+			h.executeTemplate(w, tmpl, data)
 			return
 		}
 	}
+	h.executeTemplate(w, tmpl, data)
 }
