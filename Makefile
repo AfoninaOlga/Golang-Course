@@ -30,6 +30,6 @@ e2e:
 	@./e2e.sh
 
 clean:
-	@rm $(TARGET)
+	@rm $(XKCDTARGET) $(WEBTARGET)
 
 .PHONY: build clean deps
