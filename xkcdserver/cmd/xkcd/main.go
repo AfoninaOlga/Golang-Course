@@ -39,6 +39,8 @@ func main() {
 		}
 	}
 
+	log.Println("web server will listening on", port)
+
 	goCnt := cfg.GoroutineCount
 	// if there's no field "parallel" in config
 	if goCnt == 0 {
