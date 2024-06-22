@@ -23,7 +23,7 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 
 	if !req.URL.Query().Has("search") {
 		log.Println("rendering search page")
-		tmpl.Execute(w, nil)
+		h.executeTemplate(w, tmpl, nil)
 		return
 	}
 
@@ -38,7 +38,7 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 	if text == "" {
 		data.ErrMessage = "Search query should not be empty. Enter keyword(s) and try again."
 		log.Println("Empty search query")
-		tmpl.Execute(w, data)
+		h.executeTemplate(w, tmpl, data)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println("error creating search request:", err)
 		data.ErrMessage = "Internal error. Try again later."
-		tmpl.Execute(w, data)
+		h.executeTemplate(w, tmpl, data)
 		return
 
 	}
@@ -56,7 +56,7 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 	resp, err := h.client.Do(apiReq)
 	if err != nil {
 		log.Println("error sending search request:", err)
-		tmpl.Execute(w, data)
+		h.executeTemplate(w, tmpl, data)
 		return
 	}
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -65,7 +65,7 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 	}
 	if resp.StatusCode != http.StatusOK {
 		data.ErrMessage = "Internal error. Try again later."
-		tmpl.Execute(w, data)
+		h.executeTemplate(w, tmpl, data)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println("error decoding search response:", err)
 		data.ErrMessage = "Internal error. Try again later."
-		tmpl.Execute(w, data)
+		h.executeTemplate(w, tmpl, data)
 		return
 	}
 
@@ -91,6 +91,5 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 		data.ErrMessage = "No comics found. Try other keywords."
 	}
 
-	tmpl.Execute(w, data)
-	return
+	h.executeTemplate(w, tmpl, data)
 }
