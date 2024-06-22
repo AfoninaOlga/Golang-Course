@@ -195,7 +195,7 @@ func (cdb *ComicDB) RunMigrationUp() error {
 		return err
 	}
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://internal/adapter/repository/sqlite/migrations", "sqlite3", d)
+		"file://xkcdserver/internal/adapter/repository/sqlite/migrations", "sqlite3", d)
 	if err != nil {
 		return err
 	}
