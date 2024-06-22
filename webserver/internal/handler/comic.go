@@ -85,11 +85,10 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 		data.Images = append(data.Images, v.Url)
 	}
 	data.ImageCount = len(data.Images)
+	log.Println(data.Images, data.ImageCount)
 
 	if data.ImageCount == 0 {
 		data.ErrMessage = "No comics found. Try other keywords."
-		tmpl.Execute(w, nil)
-		return
 	}
 
 	tmpl.Execute(w, data)
