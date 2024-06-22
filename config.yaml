@@ -1,8 +1,10 @@
 source_url: https://xkcd.com
-db_file: database.json
 parallel: 8
 update_time: "17:43"
-port: 8080
-dsn: "file:./xkcd.db?mode=rwc"
+api_port: 8080
+dsn: "file:./xkcdserver/xkcd.db?mode=rwc"
 concurrency_limit: 100
 rate_limit: 10
+api_url: http://localhost:8080
+web_port: 8081
+token_duration: 10 #minutes
