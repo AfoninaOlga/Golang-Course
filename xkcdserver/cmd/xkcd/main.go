@@ -79,7 +79,11 @@ func main() {
 
 	//Filling database before server start
 	xkcdService := service.NewXkcdService(comicDB, xkcdClient, 10, goCnt)
-	authService := service.NewAuthService(userDB, "quokka", time.Minute*10)
+	ttl := cfg.TokenDuration
+	if ttl == 0 {
+		ttl = 10
+	}
+	authService := service.NewAuthService(userDB, "quokka", time.Duration(ttl)*time.Minute)
 	if cnt := xkcdService.LoadComics(ctx); cnt == 0 {
 		log.Println("Nothing to load, database is up to date")
 	} else {
