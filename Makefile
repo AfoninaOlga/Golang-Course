@@ -26,8 +26,7 @@ sec:
 	@govulncheck ./...
 
 e2e:
-	@chmod +x e2e.sh
-	@./e2e.sh
+	@bash ./xkcdserver/e2e.sh
 
 clean:
 	@rm $(XKCDTARGET) $(WEBTARGET)
