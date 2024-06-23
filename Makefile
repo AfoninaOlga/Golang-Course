@@ -31,4 +31,4 @@ e2e:
 clean:
 	@$(RM) $(XKCDTARGET) $(WEBTARGET)
 
-.PHONY: build clean deps
+.PHONY: all webserver xkcdserver deps test lint sec e2e clean
