@@ -21,16 +21,16 @@ func (h *Handler) Search(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 
-	if !req.URL.Query().Has("search") {
-		log.Println("rendering search page")
-		h.executeTemplate(w, tmpl, nil)
-		return
-	}
-
 	var data struct {
 		Images     []string
 		ImageCount int
 		ErrMessage string
+	}
+
+	if !req.URL.Query().Has("search") {
+		log.Println("rendering search page")
+		h.executeTemplate(w, tmpl, data)
+		return
 	}
 
 	text := req.URL.Query().Get("search")
