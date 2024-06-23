@@ -29,6 +29,6 @@ e2e:
 	@bash ./xkcdserver/e2e.sh
 
 clean:
-	@rm $(XKCDTARGET) $(WEBTARGET)
+	@$(RM) $(XKCDTARGET) $(WEBTARGET)
 
 .PHONY: build clean deps
