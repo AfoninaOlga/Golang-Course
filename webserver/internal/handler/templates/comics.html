@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <title>Comics</title>
+</head>
+<body>
+{{if .ErrMessage}}
+<div class="alert alert-danger alert-dismissible" role="alert">
+    {{.ErrMessage}}
+    <span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span>
+</div>
+{{end}}
+<div class="container">
+<h1>xkcd comics search</h1>
+<form role="search" method="get" action="/comics">
+    <div class="input-group mb-3">
+        <input type="search" name="search" class="form-control" placeholder="Comic keywords">
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </div>
+</form>
+</div>
+{{if gt .ImageCount 1}}
+<div class="container-fluid" style="height: fit-content">
+    <div id="carouselExampleControls" class="carousel carousel-dark slide">
+        <div class="carousel-inner">
+            {{range $i, $v := .Images}}
+                {{if eq $i 0}}
+                <div class="carousel-item active">
+                    <img src={{$v}} class="d-block h-100" style="margin: auto">
+                </div>
+                {{else}}
+                <div class="carousel-item">
+                    <img src={{$v}} class="d-block h-100" style="margin: auto">
+                </div>
+                {{end}}
+            {{end}}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+{{else if eq .ImageCount 1}}
+    {{range .Images}}
+    <div class="container">
+        <img src={{.}} class="d-block h-100" style="margin: auto">
+    </div>
+    {{end}}
+{{end}}
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>

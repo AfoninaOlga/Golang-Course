@@ -1,14 +1,21 @@
-srcdir=./cmd/xkcd
-TARGET=xkcd-server
+xkcddir=./xkcdserver/cmd/xkcd
+webdir=./webserver/cmd
+XKCDTARGET=xkcd-server
+WEBTARGET=web-server
 
-build: deps
-	@go build -o $(TARGET) $(srcdir)
+all: webserver xkcdserver
+
+webserver: deps
+	@go build -o $(WEBTARGET) $(webdir)
+
+xkcdserver: deps
+	@go build -o $(XKCDTARGET) $(xkcddir)
 
 deps:
 	@go mod tidy
 
 test:
-	@go test -race -coverprofile=coverage.out ./...
+	@go test -race -coverprofile=coverage.out ./xkcdserver/...
 	@go tool cover -html=coverage.out -o coverage.html
 
 lint:
@@ -19,10 +26,9 @@ sec:
 	@govulncheck ./...
 
 e2e:
-	@chmod +x e2e.sh
-	@./e2e.sh
+	@bash ./xkcdserver/e2e.sh
 
 clean:
-	@rm $(TARGET)
+	@$(RM) $(XKCDTARGET) $(WEBTARGET)
 
-.PHONY: build clean deps
+.PHONY: all webserver xkcdserver deps test lint sec e2e clean
